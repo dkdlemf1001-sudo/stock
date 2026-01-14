@@ -3,132 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>투자 Supporter Pro</title>
+    <title>INVESTOR PRO - Speed Max</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #1a237e; --sub: #303f9f; --accent: #ff6d00; --bg: #f0f2f5; --white: #ffffff; --red: #d32f2f; --blue: #1976d2; }
-        * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); margin: 0; padding-bottom: 30px; color: #333; }
+        :root { --main: #0f172a; --accent: #f59e0b; --bg: #f8fafc; --white: #ffffff; --red: #ef4444; --blue: #3b82f6; }
+        * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background: var(--bg); margin: 0; padding-bottom: 50px; color: #1e293b; }
         
-        /* 상단 전광판 */
-        .fx-panel { background: #212121; color: #fff; padding: 10px; font-size: 13px; text-align: center; font-weight: 600; letter-spacing: 0.5px; }
-        .fx-panel span { color: var(--accent); margin-left: 8px; }
+        header { background: var(--main); color: white; padding: 30px 20px; text-align: center; }
+        .summary-card { background: var(--white); width: 92%; margin: -20px auto 20px; border-radius: 20px; padding: 20px; display: flex; justify-content: space-around; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
+        .summary-item label { display: block; color: #64748b; font-size: 12px; margin-bottom: 4px; }
+        .summary-item span { font-size: 18px; font-weight: 800; }
 
-        header { background: var(--main); color: white; padding: 40px 20px; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        header h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -1px; }
+        .container { max-width: 850px; margin: 0 auto; padding: 10px; }
+        .tabs { display: flex; background: #e2e8f0; border-radius: 12px; padding: 4px; margin-bottom: 15px; overflow-x: auto; }
+        .tab { flex: 1; padding: 12px; border: none; background: none; font-weight: 700; color: #64748b; cursor: pointer; border-radius: 8px; white-space: nowrap; }
+        .tab.active { background: var(--white); color: var(--main); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        /* 요약 카드 */
-        .summary-card { background: var(--white); width: 90%; margin: -30px auto 20px; border-radius: 20px; padding: 25px; display: flex; justify-content: space-around; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
-        .summary-item label { display: block; color: #757575; font-size: 13px; margin-bottom: 5px; }
-        .summary-item span { font-size: 20px; font-weight: 800; }
+        .content { display: none; }
+        .content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .container { max-width: 800px; margin: 0 auto; padding: 10px; }
+        .section-card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 15px; }
+        .section-title { font-size: 15px; font-weight: 800; margin-bottom: 15px; color: var(--main); border-left: 4px solid var(--accent); padding-left: 10px; }
 
-        /* 탭 버튼 */
-        .tabs { display: flex; background: #e0e0e0; border-radius: 12px; padding: 5px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 12px; border: none; background: none; font-weight: 700; color: #757575; cursor: pointer; border-radius: 8px; transition: 0.2s; }
-        .tab.active { background: var(--white); color: var(--main); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-
-        .content { display: none; animation: fadeIn 0.4s ease; }
-        .content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* 섹션 카드 디자인 */
-        .section-card { background: var(--white); border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .input-group { display: flex; gap: 8px; margin-bottom: 15px; }
+        .input-group input { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; }
         
-        /* 테이블 디자인 */
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th { text-align: left; padding: 15px 10px; color: #9e9e9e; font-size: 13px; border-bottom: 1px solid #eee; }
-        td { padding: 15px 10px; border-bottom: 1px solid #f9f9f9; }
-        input { border: 1px solid #e0e0e0; padding: 10px; border-radius: 10px; width: 100%; font-size: 14px; background: #fafafa; }
-        input:focus { outline: 2px solid var(--sub); background: #fff; }
-
-        /* 버튼 */
-        .btn-main { background: var(--main); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: 800; font-size: 16px; cursor: pointer; margin-bottom: 10px; box-shadow: 0 6px 15px rgba(26,35,126,0.2); }
-        .btn-add { background: #f5f5f5; color: #424242; border: 1px dashed #bdbdbd; padding: 12px; border-radius: 15px; width: 100%; font-weight: 600; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px 8px; color: #94a3b8; font-size: 12px; border-bottom: 1px solid #f1f5f9; }
+        td { padding: 12px 8px; border-bottom: 1px solid #f8fafc; font-size: 14px; }
         
-        /* 수익 분석 그리드 */
-        .ana-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .ana-card { background: #f8f9fa; padding: 20px; border-radius: 18px; border: 1px solid #edf0f2; }
-        .ana-card h4 { margin: 0 0 8px 0; font-size: 13px; color: #757575; }
-        .ana-card div { font-size: 18px; font-weight: 800; }
-
+        .btn-action { background: var(--main); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-action:active { transform: scale(0.98); opacity: 0.9; }
+        
         .pos { color: var(--red); }
         .neg { color: var(--blue); }
     </style>
 </head>
 <body>
 
-<div class="fx-panel">실시간 USD 환율 전광판 <span>$1 = <b id="fx-now">...</b>원</span></div>
-
-<header>
-    <h1>INVESTOR PRO</h1>
-</header>
+<header><h1>INVESTOR PRO</h1></header>
 
 <div class="summary-card">
-    <div class="summary-item">
-        <label>평가 자산</label>
-        <span id="t-val">0</span>
-    </div>
-    <div class="summary-item">
-        <label>수익률</label>
-        <span id="t-pct">0%</span>
-    </div>
+    <div class="summary-item"><label>평가 자산</label><span id="sum-val">0</span></div>
+    <div class="summary-item"><label>납입 원금</label><span id="sum-deposit">0</span></div>
+    <div class="summary-item"><label>수익률</label><span id="sum-pct">0%</span></div>
 </div>
 
 <div class="container">
     <div class="tabs">
-        <button class="tab active" onclick="tab(0)">자산 목록</button>
-        <button class="tab" onclick="tab(1)">수익 분석</button>
-        <button class="tab" onclick="tab(2)">추천 종목</button>
+        <button class="tab active" onclick="tab(0)">포트폴리오</button>
+        <button class="tab" onclick="tab(1)">납입 원금 관리</button>
+        <button class="tab" onclick="tab(2)">추천 10선</button>
     </div>
 
     <div id="c0" class="content active">
-        <button class="btn-main" onclick="updateAll()">🔄 실시간 시세 동기화</button>
-        <div class="section-card">
-            <div class="table-wrap">
+        <button class="btn-action" onclick="updateAllParallel()" id="upd-btn">🔄 초고속 시세 동기화</button>
+        <div class="section-card" style="margin-top:15px;">
+            <div class="section-title">보유 자산</div>
+            <div style="overflow-x:auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>종목</th>
-                            <th width="80">수량</th>
-                            <th>매수가</th>
-                            <th>현재가</th>
-                            <th>수익률</th>
-                            <th width="40"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="list"></tbody>
+                    <thead><tr><th>종목</th><th>수량</th><th>평단</th><th>현재가</th><th>수익</th><th></th></tr></thead>
+                    <tbody id="list-stocks"></tbody>
                 </table>
             </div>
-            <button class="btn-add" onclick="addRow()" style="margin-top:15px;">+ 새로운 자산 추가</button>
+            <button class="btn-action" style="background:#f1f5f9; color:#475569; margin-top:15px;" onclick="addRow()">+ 종목 추가</button>
         </div>
-        <div style="text-align: center; color:#9e9e9e; font-size:12px;" id="status">서버 연결 대기 중...</div>
     </div>
 
     <div id="c1" class="content">
         <div class="section-card">
-            <h3 style="margin-top:0;">📊 포트폴리오 성적표</h3>
-            <div class="ana-grid">
-                <div class="ana-card"><h4>투자 원금</h4><div id="st-buy">0</div></div>
-                <div class="ana-card"><h4>평가 금액</h4><div id="st-val">0</div></div>
-                <div class="ana-card"><h4>누적 수익</h4><div id="st-diff">0</div></div>
-                <div class="ana-card"><h4>종목 비중</h4><div id="st-cnt">0개</div></div>
+            <div class="section-title">오늘의 납입 금액</div>
+            <div class="input-group">
+                <input type="date" id="dep-date">
+                <input type="number" id="dep-amount" placeholder="금액 입력(₩)">
+                <button class="btn-action" style="width:80px;" onclick="addDeposit()">기록</button>
+            </div>
+        </div>
+        <div class="section-card">
+            <div class="section-title">이달의 납입 내역</div>
+            <table id="deposit-table">
+                <thead><tr><th>날짜</th><th>금액</th><th>삭제</th></tr></thead>
+                <tbody id="list-deposit"></tbody>
+            </table>
+        </div>
+        <div class="section-card">
+            <div class="section-title">납입 총계</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div style="background:#f8fafc; padding:15px; border-radius:12px; text-align:center;">
+                    <small style="color:#64748b;">올해 납입 (2026)</small>
+                    <div id="year-total" style="font-weight:800; font-size:18px; margin-top:5px;">0원</div>
+                </div>
+                <div style="background:#f8fafc; padding:15px; border-radius:12px; text-align:center;">
+                    <small style="color:#64748b;">총 납입 원금</small>
+                    <div id="grand-total" style="font-weight:800; font-size:18px; margin-top:5px;">0원</div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="c2" class="content">
-        <div class="section-card">
-            <h4 style="color:var(--main)">🔥 단기 모멘텀 추천</h4>
-            <p>삼성전자 (005930), NVIDIA (NVDA)</p>
-            <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
-            <h4 style="color:var(--accent)">💎 장기 가치주 추천</h4>
-            <p>Alphabet C (GOOG), Berkshire B (BRK-B)</p>
-        </div>
+        <div class="section-card" id="rec-list"></div>
     </div>
 </div>
 
@@ -149,99 +127,112 @@
         document.querySelectorAll('.tab').forEach((t,idx) => t.classList.toggle('active', i===idx));
     }
 
-    async function getFx() {
-        try {
-            const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/USDKRW=X')}`);
-            const j = await r.json();
-            fx = JSON.parse(j.contents).chart.result[0].meta.regularMarketPrice;
-            document.getElementById('fx-now').innerText = fx.toLocaleString('ko-KR', {maximumFractionDigits:1});
-        } catch(e) {}
+    // --- 시세 업데이트 (병렬 처리로 속도 최적화) ---
+    async function updateAllParallel() {
+        const btn = document.getElementById('upd-btn');
+        btn.innerText = "⚡ 빛의 속도로 조회 중...";
+        
+        const rows = Array.from(document.querySelectorAll('#list-stocks tr'));
+        const promises = rows.map(async (row) => {
+            let ticker = row.querySelector('.n').value.trim().toUpperCase();
+            if(!ticker) return;
+            if(!isNaN(ticker) && ticker.length === 6) ticker += ".KS";
+
+            try {
+                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`)}`);
+                const json = await res.json();
+                const price = JSON.parse(json.contents).chart.result[0].meta.regularMarketPrice;
+                if(price) row.querySelector('.c').value = price.toFixed(2);
+            } catch (e) { console.error(ticker + " 실패"); }
+        });
+
+        await Promise.all(promises); // 모든 요청을 동시에 실행
+        btn.innerText = "🔄 초고속 시세 동기화";
+        calc();
+        saveStocks();
     }
 
+    // --- 납입 원금 로직 ---
+    window.addDeposit = () => {
+        const date = document.getElementById('dep-date').value;
+        const amount = parseInt(document.getElementById('dep-amount').value);
+        if(!date || !amount) return;
+        db.ref('deposits').push({ date, amount }).then(() => {
+            document.getElementById('dep-amount').value = '';
+            loadDeposits();
+        });
+    };
+
+    function loadDeposits() {
+        db.ref('deposits').on('value', snap => {
+            const data = snap.val();
+            const list = document.getElementById('list-deposit');
+            list.innerHTML = '';
+            let total = 0, yearTotal = 0;
+            if(data) {
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    total += item.amount;
+                    if(item.date.startsWith("2026")) yearTotal += item.amount;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${item.date}</td><td>${item.amount.toLocaleString()}원</td><td onclick="delDep('${key}')">❌</td>`;
+                    list.prepend(tr);
+                });
+            }
+            document.getElementById('grand-total').innerText = total.toLocaleString() + "원";
+            document.getElementById('year-total').innerText = yearTotal.toLocaleString() + "원";
+            document.getElementById('sum-deposit').innerText = total.toLocaleString();
+        });
+    }
+
+    window.delDep = (key) => db.ref('deposits').child(key).remove();
+
+    // --- 주식 로직 ---
     window.addRow = (d={}) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" class="n" value="${d.n||''}" placeholder="티커"></td>
-            <td><input type="number" class="q" value="${d.q||0}" oninput="calc()"></td>
-            <td><input type="number" class="b" value="${d.b||0}" oninput="calc()"></td>
+            <td><input type="text" class="n" value="${d.n||''}" placeholder="AAPL" onchange="saveStocks()"></td>
+            <td><input type="number" class="q" value="${d.q||0}" oninput="calc();saveStocks();"></td>
+            <td><input type="number" class="b" value="${d.b||0}" oninput="calc();saveStocks();"></td>
             <td><input type="number" class="c" value="${d.c||0}" readonly></td>
-            <td class="r" style="font-weight:700">0%</td>
-            <td onclick="this.closest('tr').remove(); save(); calc();" style="cursor:pointer; color:#ccc;">✕</td>
+            <td class="r" style="font-weight:bold">0%</td>
+            <td onclick="this.closest('tr').remove();saveStocks();calc();">❌</td>
         `;
-        document.getElementById('list').appendChild(tr);
-        calc();
+        document.getElementById('list-stocks').appendChild(tr);
     };
 
     window.calc = () => {
-        let tVal = 0, tBuy = 0, cnt = 0;
-        document.querySelectorAll('#list tr').forEach(row => {
-            const ticker = row.querySelector('.n').value.toUpperCase();
+        let tVal = 0, tBuy = 0;
+        document.querySelectorAll('#list-stocks tr').forEach(row => {
             const q = parseFloat(row.querySelector('.q').value)||0;
             const b = parseFloat(row.querySelector('.b').value)||0;
             const c = parseFloat(row.querySelector('.c').value)||0;
-            const m = (isNaN(ticker) || ticker.length !== 6) ? fx : 1;
-
-            const rB = q * b * m;
-            const rV = q * c * m;
+            const m = (isNaN(row.querySelector('.n').value) || row.querySelector('.n').value.length !== 6) ? fx : 1;
+            
+            const rowVal = q * c * m;
             const pct = b > 0 ? ((c-b)/b*100).toFixed(2) : 0;
-            
-            const rCell = row.querySelector('.r');
-            rCell.innerText = pct + "%";
-            rCell.className = 'r ' + (pct >= 0 ? 'pos' : 'neg');
-            
-            tBuy += rB; tVal += rV;
-            if(q > 0) cnt++;
+            row.querySelector('.r').innerText = pct + "%";
+            row.querySelector('.r').className = 'r ' + (pct >= 0 ? 'pos' : 'neg');
+            tVal += rowVal;
         });
-
-        document.getElementById('t-val').innerText = Math.floor(tVal).toLocaleString() + "원";
-        const totalPct = tBuy > 0 ? ((tVal-tBuy)/tBuy*100).toFixed(2) : 0;
-        const pctEl = document.getElementById('t-pct');
-        pctEl.innerText = totalPct + "%";
-        pctEl.className = totalPct >= 0 ? 'pos' : 'neg';
-
-        document.getElementById('st-buy').innerText = Math.floor(tBuy).toLocaleString() + "원";
-        document.getElementById('st-val').innerText = Math.floor(tVal).toLocaleString() + "원";
-        document.getElementById('st-diff').innerText = Math.floor(tVal - tBuy).toLocaleString() + "원";
-        document.getElementById('st-diff').className = (tVal-tBuy) >= 0 ? 'pos' : 'neg';
-        document.getElementById('st-cnt').innerText = cnt + "개";
+        document.getElementById('sum-val').innerText = Math.floor(tVal).toLocaleString();
     };
 
-    window.save = () => {
-        const data = Array.from(document.querySelectorAll('#list tr')).map(row => ({
+    window.saveStocks = () => {
+        const data = Array.from(document.querySelectorAll('#list-stocks tr')).map(row => ({
             n: row.querySelector('.n').value.toUpperCase(),
             q: row.querySelector('.q').value, b: row.querySelector('.b').value, c: row.querySelector('.c').value
         }));
-        db.ref('stocks').set(data).then(() => { document.getElementById('status').innerText = "● 모든 데이터가 안전하게 저장되었습니다"; });
-    };
-
-    window.updateAll = async () => {
-        const btn = document.querySelector('.btn-main');
-        btn.innerText = "⚡ 최신 가격 조회 중...";
-        await getFx();
-        const rows = document.querySelectorAll('#list tr');
-
-        for (let row of rows) {
-            let t = row.querySelector('.n').value.trim();
-            if(!t) continue;
-            if(!isNaN(t) && t.length === 6) t += ".KS";
-            try {
-                const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${t}`)}`);
-                const j = await r.json();
-                const p = JSON.parse(j.contents).chart.result[0].meta.regularMarketPrice;
-                if(p) row.querySelector('.c').value = p.toFixed(2);
-            } catch (e) {}
-        }
-        btn.innerText = "🔄 실시간 시세 동기화";
-        calc(); save();
+        db.ref('stocks').set(data);
     };
 
     window.onload = () => {
-        getFx();
-        db.ref('stocks').once('value', (snap) => {
+        document.getElementById('dep-date').valueAsDate = new Date();
+        loadDeposits();
+        db.ref('stocks').once('value', snap => {
             const data = snap.val();
-            document.getElementById('list').innerHTML = "";
+            document.getElementById('list-stocks').innerHTML = "";
             if(data) data.forEach(addRow); else addRow();
-            document.getElementById('status').innerText = "● 서버 동기화 완료";
             calc();
         });
     };
