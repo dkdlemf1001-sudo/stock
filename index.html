@@ -2,93 +2,114 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>투자 Supporter Pro LITE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투자 Supporter Pro - Final</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #0a3d62; --accent: #fa983a; --bg: #eff2f5; --card: #ffffff; --pos: #eb4d4b; --neg: #0984e3; }
-        body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); margin: 0; padding: 0; color: #2d3436; }
+        :root { --primary: #0a3d62; --accent: #fa983a; --bg: #eff2f5; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         header { background: var(--primary); color: white; padding: 20px; text-align: center; }
-        .summary-bar { background: #fff; padding: 15px; display: flex; justify-content: space-around; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .summary { background: white; padding: 15px; display: flex; justify-content: space-around; font-weight: bold; border-bottom: 3px solid var(--accent); position: sticky; top: 0; z-index: 10; }
         .container { max-width: 800px; margin: 0 auto; padding: 15px; }
-        .tabs { display: flex; gap: 5px; margin-top: 10px; }
-        .tab { flex: 1; padding: 12px; border: none; border-radius: 8px 8px 0 0; cursor: pointer; background: #dfe4ea; font-weight: bold; }
-        .tab.active { background: #fff; color: var(--primary); border-bottom: 3px solid var(--accent); }
-        .content { background: #fff; padding: 15px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: none; }
-        .content.active { display: block; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { padding: 10px; border-bottom: 2px solid #eee; text-align: left; color: #636e72; }
-        td { padding: 10px; border-bottom: 1px solid #f1f2f6; }
-        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .btn { padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-upd { background: #2ecc71; color: white; width: 100%; margin-bottom: 15px; }
-        .btn-add { background: var(--primary); color: white; float: right; margin-bottom: 10px; }
-        .status { font-size: 11px; text-align: right; color: #27ae60; margin-bottom: 5px; }
+        .status { font-size: 12px; color: #27ae60; text-align: right; margin-bottom: 5px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; }
+        input { width: 90%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .btn { padding: 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; width: 100%; margin: 5px 0; font-size: 15px; }
+        .btn-upd { background: #2ecc71; color: white; transition: 0.3s; }
+        .btn-upd:active { background: #27ae60; }
+        .btn-add { background: var(--primary); color: white; }
+        .red { color: #eb4d4b; } .blue { color: #0984e3; }
     </style>
 </head>
 <body>
 
 <header><h1>투자 Supporter Pro</h1></header>
-
-<div class="summary-bar">
-    <div>총 자산: <span id="total-val">0</span></div>
-    <div>수익률: <span id="total-pct">0%</span></div>
+<div class="summary">
+    <div>총 자산: <span id="t-val">0</span>원</div>
+    <div>수익률: <span id="t-pct">0%</span></div>
 </div>
 
 <div class="container">
-    <div class="status" id="status">연결 중...</div>
-    <div class="tabs">
-        <button class="tab active" onclick="tab(0)">포트폴리오</button>
-        <button class="tab" onclick="tab(1)">단기추천</button>
-        <button class="tab" onclick="tab(2)">장기추천</button>
-    </div>
-
-    <div id="c0" class="content active">
-        <button class="btn btn-upd" onclick="updateAll()">🔄 시세 업데이트 & 클라우드 저장</button>
-        <button class="btn btn-add" onclick="addRow()">+ 추가</button>
-        <div style="overflow-x:auto;">
-            <table>
-                <thead><tr><th>티커</th><th>수량</th><th>평단</th><th>현재가</th><th>수익</th><th>X</th></tr></thead>
-                <tbody id="list"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="c1" class="content">
-        <p><strong>삼성전자:</strong> 005930.KS</p>
-        <p><strong>알파벳 A:</strong> GOOGL</p>
-    </div>
-    <div id="c2" class="content">장기 투자 종목 탭</div>
+    <div id="status" class="status">연결 중...</div>
+    <button class="btn btn-upd" onclick="updateStockPrices()">🔄 주가 업데이트 & 클라우드 저장</button>
+    <button class="btn btn-add" onclick="addRow()">+ 종목 추가</button>
+    
+    <table>
+        <thead><tr><th>티커</th><th>수량</th><th>평단</th><th>현재가</th><th>수익</th><th>삭제</th></tr></thead>
+        <tbody id="list"></tbody>
+    </table>
 </div>
 
 <script>
-    // [수정] databaseURL이 없으면 저장이 안 될 수 있어 명시적으로 추가 권장
-    const config = {
+    // 사용자님의 Firebase 설정 및 확인된 DB 주소 적용
+    const firebaseConfig = {
         apiKey: "AIzaSyCtB8mZExH43WIRR2DFQ2E5DjHAUZp1TzI",
         authDomain: "my-stock-site.firebaseapp.com",
         projectId: "my-stock-site",
-        databaseURL: "https://my-stock-site-default-rtdb.firebaseio.com", // 사용자 프로젝트 ID에 맞게 자동 생성
+        databaseURL: "https://my-stock-site-default-rtdb.firebaseio.com/", 
         appId: "1:647621503807:web:577ea9e4c5ad70817b418a"
     };
-    firebase.initializeApp(config);
+
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    window.tab = (i) => {
-        document.querySelectorAll('.content').forEach((c,idx) => c.style.display = (idx===i?'block':'none'));
-        document.querySelectorAll('.tab').forEach((t,idx) => t.classList.toggle('active', i===idx));
+    // 1. 데이터 클라우드 저장 로직
+    window.sync = () => {
+        const rows = document.querySelectorAll('#list tr');
+        const data = Array.from(rows).map(row => ({
+            n: row.querySelector('.n').value.toUpperCase(),
+            q: row.querySelector('.q').value,
+            b: row.querySelector('.b').value,
+            c: row.querySelector('.c').value
+        }));
+        db.ref('stocks').set(data)
+          .then(() => { document.getElementById('status').innerText = "● 클라우드 실시간 동기화 중"; })
+          .catch(e => { document.getElementById('status').innerText = "● 저장 실패 (규칙 확인 필요)"; });
+    };
+
+    // 2. 실시간 주가 업데이트 (보안 우회 로직 적용)
+    window.updateStockPrices = async () => {
+        const btn = document.querySelector('.btn-upd');
+        btn.innerText = "⚡ 실시간 시세 조회 중...";
+        const rows = document.querySelectorAll('#list tr');
+
+        for (let row of rows) {
+            let ticker = row.querySelector('.n').value.trim();
+            if(!ticker) continue;
+            
+            // 한국 주식(숫자 6자리) 자동 변환
+            if(!isNaN(ticker) && ticker.length === 6) ticker += ".KS";
+
+            try {
+                // 야후 파이낸스 CORS 차단 우회를 위한 프록시 서버 활용
+                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`)}`);
+                const json = await response.json();
+                const stockData = JSON.parse(json.contents);
+                const price = stockData.chart.result[0].meta.regularMarketPrice;
+                
+                if(price) {
+                    row.querySelector('.c').value = price.toFixed(2);
+                }
+            } catch (e) { 
+                console.error(ticker + " 조회 실패"); 
+            }
+        }
+        btn.innerText = "🔄 주가 업데이트 & 클라우드 저장";
+        calc();
+        sync();
     };
 
     window.addRow = (d={}) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" value="${d.n||''}" class="n" placeholder="예: AAPL" onchange="sync()"></td>
-            <td><input type="number" value="${d.q||0}" class="q" oninput="calc(); sync();"></td>
-            <td><input type="number" value="${d.b||0}" class="b" oninput="calc(); sync();"></td>
-            <td><input type="number" value="${d.c||0}" class="c" readonly></td>
-            <td class="r">0%</td>
-            <td><button onclick="this.closest('tr').remove();sync();">×</button></td>
+            <td><input type="text" class="n" value="${d.n||''}" placeholder="AAPL / 005930" onchange="sync()"></td>
+            <td><input type="number" class="q" value="${d.q||0}" oninput="calc(); sync();"></td>
+            <td><input type="number" class="b" value="${d.b||0}" oninput="calc(); sync();"></td>
+            <td><input type="number" class="c" value="${d.c||0}" readonly style="background:#f9f9f9"></td>
+            <td class="r" style="font-weight:bold">0%</td>
+            <td><button onclick="this.closest('tr').remove(); sync(); calc();">❌</button></td>
         `;
         document.getElementById('list').appendChild(tr);
         calc();
@@ -97,68 +118,34 @@
     window.calc = () => {
         let tVal = 0, tBuy = 0;
         document.querySelectorAll('#list tr').forEach(row => {
-            const q = parseFloat(row.querySelector('.q').value)||0, 
-                  b = parseFloat(row.querySelector('.b').value)||0, 
-                  c = parseFloat(row.querySelector('.c').value)||0;
-            const res = b>0 ? ((c-b)/b*100).toFixed(2) : 0;
+            const q = parseFloat(row.querySelector('.q').value)||0;
+            const b = parseFloat(row.querySelector('.b').value)||0;
+            const c = parseFloat(row.querySelector('.c').value)||0;
+            const res = b > 0 ? ((c-b)/b*100).toFixed(2) : 0;
             const rCell = row.querySelector('.r');
             rCell.innerText = res + "%";
-            rCell.style.color = res>=0 ? '#eb4d4b':'#0984e3';
+            rCell.className = 'r ' + (res >= 0 ? 'red' : 'blue');
             tBuy += (q * b);
             tVal += (q * c);
         });
-        document.getElementById('total-val').innerText = Math.floor(tVal).toLocaleString();
-        const tPct = tBuy>0 ? ((tVal-tBuy)/tBuy*100).toFixed(2) : 0;
-        document.getElementById('total-pct').innerText = tPct + "%";
-        document.getElementById('total-pct').style.color = tPct>=0 ? '#eb4d4b':'#0984e3';
-    };
-
-    // [강화] 동기화 로직에 로그 추가
-    window.sync = () => {
-        const data = Array.from(document.querySelectorAll('#list tr')).map(row => ({
-            n: row.querySelector('.n').value.toUpperCase(),
-            q: row.querySelector('.q').value, 
-            b: row.querySelector('.b').value, 
-            c: row.querySelector('.c').value
-        }));
-        db.ref('stocks').set(data)
-          .then(() => { document.getElementById('status').innerText = "클라우드 저장됨"; })
-          .catch((e) => { document.getElementById('status').innerText = "저장 실패: 규칙 확인 요망"; });
-    };
-
-    window.updateAll = async () => {
-        const btn = document.querySelector('.btn-upd');
-        btn.innerText = "⚡ 업데이트 중...";
-        const rows = Array.from(document.querySelectorAll('#list tr'));
-        
-        await Promise.all(rows.map(async (row) => {
-            const ticker = row.querySelector('.n').value;
-            if(!ticker) return;
-            try {
-                // 프록시 서버(cors-anywhere 등) 없이 Yahoo Finance 호출은 가끔 차단될 수 있음
-                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`);
-                const json = await res.json();
-                const price = json.chart.result[0].meta.regularMarketPrice;
-                if(price) row.querySelector('.c').value = price.toFixed(2);
-            } catch(e) { console.error(ticker + " 실패"); }
-        }));
-        
-        btn.innerText = "🔄 시세 업데이트 & 클라우드 저장";
-        calc();
-        sync();
+        document.getElementById('t-val').innerText = Math.floor(tVal).toLocaleString();
+        const tPct = tBuy > 0 ? ((tVal-tBuy)/tBuy*100).toFixed(2) : 0;
+        const pctEl = document.getElementById('t-pct');
+        pctEl.innerText = tPct + "%";
+        pctEl.className = tPct >= 0 ? 'red' : 'blue';
     };
 
     window.onload = () => {
-        db.ref('stocks').on('value', (snap) => {
+        // 처음 로딩 시 클라우드에서 데이터 가져오기
+        db.ref('stocks').once('value', (snap) => {
             const data = snap.val();
-            const list = document.getElementById('list');
-            // 이미 데이터가 그려져 있으면 중복 생성 방지
-            if(data && list.children.length === 0) {
+            document.getElementById('list').innerHTML = "";
+            if(data && data.length > 0) {
                 data.forEach(addRow);
-            } else if (!data && list.children.length === 0) {
+            } else {
                 addRow();
             }
-            document.getElementById('status').innerText = "클라우드 연결됨";
+            document.getElementById('status').innerText = "● 클라우드 연결됨";
             calc();
         });
     };
