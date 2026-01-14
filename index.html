@@ -3,77 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>투자 Supporter Pro</title>
+    <title>투자 Supporter Premium</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #1e3799; --accent: #fa983a; --bg: #f1f2f6; --card: #ffffff; --pos: #eb4d4b; --neg: #0984e3; }
-        body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        :root { --primary: #0a3d62; --accent: #fa983a; --bg: #f6f8fa; --card: #ffffff; --pos: #eb4d4b; --neg: #0984e3; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); margin: 0; padding: 0; color: #2f3640; }
         header { background: var(--primary); color: white; padding: 40px 20px; text-align: center; }
         .container { max-width: 1000px; margin: -30px auto 50px; padding: 0 15px; }
-        .tabs { display: flex; gap: 5px; margin-bottom: 0; }
-        .tab { flex: 1; padding: 15px; border: none; border-radius: 12px 12px 0 0; cursor: pointer; font-weight: bold; background: #ced6e0; color: #2f3542; }
+        
+        .tabs { display: flex; gap: 5px; overflow-x: auto; margin-bottom: 0; }
+        .tab { flex: 1; padding: 15px 5px; border: none; border-radius: 12px 12px 0 0; cursor: pointer; font-weight: bold; background: #dcdde1; color: #7f8c8d; min-width: 100px; font-size: 14px; }
         .tab.active { background: var(--card); color: var(--primary); border-top: 5px solid var(--accent); }
+        
         .content { background: var(--card); padding: 25px; border-radius: 0 0 15px 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); display: none; }
         .content.active { display: block; }
-        .table-wrapper { overflow-x: auto; }
+        
+        .table-wrapper { overflow-x: auto; margin-top: 15px; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { text-align: left; color: #747d8c; border-bottom: 2px solid #f1f2f6; padding: 12px; }
+        th { text-align: left; color: #7f8c8d; border-bottom: 2px solid #f1f2f6; padding: 12px; }
         td { padding: 12px; border-bottom: 1px solid #f8f9fa; }
-        input { width: 85%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
-        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-update { background: #2ed573; color: white; margin-bottom: 10px; }
-        .btn-add { background: var(--primary); color: white; }
-        .recommend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .rec-card { border: 1px solid #eee; border-radius: 12px; padding: 20px; background: #fff; border-top: 5px solid var(--primary); }
-        .rec-card.us { border-top-color: var(--accent); }
-        .tag { background: #f1f2f6; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; color: var(--primary); }
+        
+        input { width: 90%; padding: 10px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 14px; }
+        .btn { padding: 12px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-update { background: #44bd32; color: white; margin-bottom: 10px; }
+        .btn-reset { background: var(--accent); color: white; padding: 8px 15px; font-size: 13px; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+        
+        .card { border: 1px solid #eee; border-radius: 15px; padding: 20px; background: #fff; position: relative; }
+        .card h3 { margin-top: 0; color: var(--primary); }
+        .tag { display: inline-block; background: #f1f2f6; color: var(--primary); padding: 3px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+        .desc { font-size: 14px; line-height: 1.6; color: #353b48; }
+        .buffett-quote { font-size: 13px; font-style: italic; color: #7f8c8d; border-left: 3px solid var(--accent); padding-left: 10px; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>투자 Supporter Pro</h1>
-    <p>실시간 가격 업데이트 & 데일리 추천</p>
+    <h1>투자 Supporter Premium</h1>
+    <p>실시간 가격 정보와 스마트 추천 서비스</p>
 </header>
 
 <div class="container">
     <div class="tabs">
         <button class="tab active" onclick="openT(0)">내 포트폴리오</button>
-        <button class="tab" onclick="openT(1)">데일리 추천</button>
+        <button class="tab" onclick="openT(1)">데일리 단기</button>
+        <button class="tab" onclick="openT(2)">장기 가치주</button>
     </div>
 
     <div id="c0" class="content active">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button class="btn btn-add" onclick="addRow()">+ 종목 추가</button>
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:15px;">
             <button class="btn btn-update" onclick="updatePrices()">🔄 실시간 가격 업데이트</button>
+            <button class="btn" style="background:var(--primary); color:white;" onclick="addRow()">+ 종목 추가</button>
         </div>
         <div class="table-wrapper">
             <table>
-                <thead><tr><th>티커(예: AAPL)</th><th>수량</th><th>매수가</th><th>현재가</th><th>수익률</th><th>관리</th></tr></thead>
+                <thead><tr><th>티커/종목코드</th><th>수량</th><th>평균단가</th><th>현재가</th><th>수익률</th><th>삭제</th></tr></thead>
                 <tbody id="list"></tbody>
             </table>
         </div>
-        <p style="font-size:0.8em; color:gray; margin-top:10px;">* 미장은 티커(AAPL), 국장은 숫자(005930)를 입력하세요.</p>
+        <p style="font-size:12px; color:#7f8c8d;">* 미국 주식은 티커(예: TSLA), 한국 주식은 종목코드(예: 005930)를 입력하세요.</p>
     </div>
 
     <div id="c1" class="content">
-        <h2 style="margin-top:0;">오늘의 버핏 스타일 추천 🚀</h2>
-        <div class="recommend-grid">
-            <div class="rec-card">
-                <span class="tag">국내(KOSPI)</span>
-                <h3>삼성전자 (005930)</h3>
-                <p><strong>이유:</strong> 반도체 사이클 회복 및 압도적 점유율. '해자'를 가진 국내 1위 기업.</p>
+        <h2>오늘의 시장 동향 & 단기 추천 📈</h2>
+        <div class="grid">
+            <div class="card">
+                <span class="tag">국내 시장(KOSPI)</span>
+                <h3>삼성바이오로직스 (207940)</h3>
+                <p class="desc">금리 인하 기대감과 대형 수주 모멘텀이 결합되어 단기적 수급 개선이 기대됩니다.</p>
             </div>
-            <div class="rec-card us">
-                <span class="tag">미장(NASDAQ)</span>
-                <h3>NVIDIA (NVDA)</h3>
-                <p><strong>이유:</strong> AI 인프라의 독점적 공급자. 버핏이 강조하는 '지속 가능한 경쟁 우위'.</p>
+            <div class="card" style="border-top: 5px solid #0984e3;">
+                <span class="tag">미국 시장(NASDAQ)</span>
+                <h3>Microsoft (MSFT)</h3>
+                <p class="desc">클라우드와 AI 부문의 견조한 성장세가 실적 발표를 앞두고 긍정적인 흐름을 보이고 있습니다.</p>
             </div>
         </div>
-        <div class="rec-card" style="margin-top:20px; border-top-color:#2ed573;">
-            <span class="tag">워렌 버핏 격언</span>
-            <p style="font-style:italic;">"가격은 당신이 지불하는 것이고, 가치는 당신이 얻는 것이다."</p>
+    </div>
+
+    <div id="c2" class="content">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>장기 투자 종목 연구소 💎</h2>
+            <button class="btn btn-reset" onclick="resetLongTerm()">🔄 종목 리셋 (업데이트)</button>
         </div>
+        <p class="desc">워렌 버핏의 '해자(Moat)' 이론을 바탕으로 한 저평가 우량주 추천입니다.</p>
+        <div id="long-term-grid" class="grid">
+            </div>
     </div>
 </div>
 
@@ -86,66 +102,39 @@
     function addRow(d={}) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" value="${d.n||''}" class="n" placeholder="예: AAPL"></td>
-            <td><input type="number" value="${d.q||0}" class="q" oninput="saveAndCalc()"></td>
-            <td><input type="number" value="${d.b||0}" class="b" oninput="saveAndCalc()"></td>
-            <td><input type="number" value="${d.c||0}" class="c" readonly style="background:#f9f9f9;"></td>
+            <td><input type="text" value="${d.n||''}" class="n" placeholder="티커 입력"></td>
+            <td><input type="number" value="${d.q||0}" class="q" oninput="save()"></td>
+            <td><input type="number" value="${d.b||0}" class="b" oninput="save()"></td>
+            <td><input type="number" value="${d.c||0}" class="c" readonly style="background:#f1f2f6;"></td>
             <td class="r" style="font-weight:bold">0%</td>
-            <td><button onclick="this.closest('tr').remove();saveAndCalc();">❌</button></td>
+            <td><button onclick="this.closest('tr').remove();save();">❌</button></td>
         `;
         document.getElementById('list').appendChild(tr);
     }
 
-    // 실시간 가격 업데이트 (Yahoo Finance API 활용 예시 로직)
     async function updatePrices() {
         const btn = document.querySelector('.btn-update');
-        btn.innerText = "⏳ 업데이트 중...";
-        
+        btn.innerText = "⏳ 가격 불러오는 중...";
         const rows = document.querySelectorAll('#list tr');
         for (let row of rows) {
             const ticker = row.querySelector('.n').value.toUpperCase();
             if(!ticker) continue;
-
             try {
-                // 실제 배포 시에는 백엔드나 프록시가 필요하지만, 
-                // 여기서는 이해를 돕기 위해 공개 API 호출 방식을 시뮬레이션합니다.
-                const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`);
-                const data = await response.json();
+                // 야후 파이낸스 실시간 데이터 시뮬레이션 및 API 연결
+                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`);
+                const data = await res.json();
                 const price = data.chart.result[0].meta.regularMarketPrice;
-                
-                if(price) {
-                    row.querySelector('.c').value = price.toFixed(2);
-                }
-            } catch (e) {
-                console.log(ticker + " 가격 로딩 실패");
-            }
+                if(price) row.querySelector('.c').value = price.toFixed(2);
+            } catch (e) { console.error(ticker + " 업데이트 실패"); }
         }
         btn.innerText = "🔄 실시간 가격 업데이트";
-        saveAndCalc();
+        save();
     }
 
-    function saveAndCalc() {
-        const rows = document.querySelectorAll('#list tr');
-        const data = Array.from(rows).map(row => {
-            const q = parseFloat(row.querySelector('.q').value) || 0;
-            const b = parseFloat(row.querySelector('.b').value) || 0;
-            const c = parseFloat(row.querySelector('.c').value) || 0;
-            const r = b > 0 ? ((c - b) / b * 100).toFixed(2) : 0;
-            
+    function save() {
+        const data = Array.from(document.querySelectorAll('#list tr')).map(row => {
+            const q = parseFloat(row.querySelector('.q').value)||0, b = parseFloat(row.querySelector('.b').value)||0, c = parseFloat(row.querySelector('.c').value)||0;
+            const r = b > 0 ? ((c-b)/b*100).toFixed(2) : 0;
             const rCell = row.querySelector('.r');
             rCell.innerText = r + "%";
-            rCell.style.color = r >= 0 ? '#eb4d4b' : '#0984e3';
-
-            return { n:row.querySelector('.n').value, q, b, c };
-        });
-        localStorage.setItem('myStockData_Pro', JSON.stringify(data));
-    }
-
-    window.onload = () => {
-        const saved = JSON.parse(localStorage.getItem('myStockData_Pro') || '[]');
-        if(saved.length) saved.forEach(addRow); else addRow();
-        saveAndCalc();
-    }
-</script>
-</body>
-</html>
+            rCell.style.color = r>=0 ? '#eb4d4b' : '#0984e
