@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>나만의 투자 관리 도우미</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #1a73e8; }
+        
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+        .tab { padding: 10px 25px; cursor: pointer; font-weight: bold; color: #666; transition: 0.3s; }
+        .tab.active { color: #1a73e8; border-bottom: 3px solid #1a73e8; background: #f8f9fa; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #eee; }
+        .card h3 { margin: 0; font-size: 0.85em; color: #777; }
+        .card p { margin: 8px 0 0; font-size: 1.4em; font-weight: bold; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f1f3f4; padding: 12px; border-bottom: 2px solid #ddd; }
+        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; }
+        input { width: 90%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; text-align: center; }
+        
+        .btn { padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; font-weight: bold; }
+        .btn-add { background: #1a73e8; color: white; float: right; margin-bottom: 10px; }
+        .btn-save { background: #34a853; color: white; width: 100%; margin-top: 20px; font-size: 1.1em; }
+        .btn-del { background: #ff4d4d; color: white; padding: 5px 10px; }
+
+        .positive { color: #d93025; } 
+        .negative { color: #1967d2; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📈 투자 관리 마스터</h1>
+    
+    <div class="tabs">
+        <div id="tab-btn-1" class="tab active" onclick="openTab('stock-tab', 'tab-btn-1')">주식 수익률</div>
+        <div id="tab-btn-2" class="tab" onclick="openTab('deposit-tab', 'tab-btn-2')">월별 납입 관리</div>
+    </div>
+
+    <div id="stock-tab" class="tab-content active">
+        <div class="summary">
+            <div class="card"><h3>총 매수원금</h3><p id="total-invest">0원</p></div>
+            <div class="card"><h3>평가 손익</h3><p id="total-profit">0원</p></div>
+            <div class="card"><h3>총 수익률</h3><p id="total-ratio">0%</p></div>
+        </div>
+        <button class="btn btn-add" onclick="addRow('stock-list')">+ 종목 추가</button>
+        <table>
+            <thead>
+                <tr><th>종목명</th><th>보유수량</th><th>매수단가</th><th>현재가</th><th>수익률</th><th>삭제</th></tr>
+            </thead>
+            <tbody id="stock-list"></tbody>
+        </table>
+    </div>
+
+    <div id="deposit-tab" class="tab-content">
+        <div class="summary">
+            <div class="card"><h3>총 누적 납입액</h3><p id="total-deposit-sum">0원</p></div>
+        </div>
+        <button class="btn btn-add" onclick="addRow('deposit-list')">+ 내역 추가</button>
+        <table>
+            <thead>
+                <tr><th>날짜(월)</th><th>납입 금액</th><th>비고</th><th>삭제</th></tr>
+            </thead>
+            <tbody id="deposit-list"></tbody>
+        </table>
+    </div>
+
+    <button class="btn btn-save" onclick="saveData()">💾 데이터 저장하기</button>
+</div>
+
+<script>
+    // 탭 전환 수정: event 의존성 제거
+    function openTab(tabId, btnId) {
+        const contents = document.getElementsByClassName('tab-content');
+        for (let content of contents) { content.classList.remove('active'); }
+        
+        const tabs = document.getElementsByClassName('tab');
+        for (let tab of tabs) { tab.classList.remove('active'); }
+        
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById(btnId).classList.add('active');
+    }
+
+    function addRow(targetId, data = {}) {
+        const tbody = document.getElementById(targetId);
+        const row = document.createElement('tr');
+        
+        if(targetId === 'stock-list') {
+            row.innerHTML = `
+                <td><input type="text" class="name" value="${data.name || ''}"></td>
+                <td><input type="number" class="qty" value="${data.qty || 0}" oninput="calculate()"></td>
+                <td><input type="number" class="buy" value="${data.buy || 0}" oninput="calculate()"></td>
+                <td><input type="number" class="curr" value="${data.curr || 0}" oninput="calculate()"></td>
+                <td class="ratio">0%</td>
+                <td><button class="btn btn-del" onclick="this.closest('tr').remove(); calculate();">삭제</button></td>
+            `;
+        } else {
+            row.innerHTML = `
+                <td><input type="month" class="date" value="${data.date || ''}"></td>
+                <td><input type="number" class="amount" value="${data.amount || 0}" oninput="calculate()"></td>
+                <td><input type="text" class="note" value="${data.note || ''}"></td>
+                <td><button class="btn btn-del" onclick="this.closest('tr').remove(); calculate();">삭제</button></td>
+            `;
+        }
+        tbody.appendChild(row);
+        calculate();
+    }
+
+    function calculate() {
+        let tInvest = 0, tEval = 0;
+        const stockRows = document.querySelectorAll('#stock-list tr');
+        stockRows.forEach(row => {
+            const q = parseFloat(row.querySelector('.qty').value) || 0;
+            const b = parseFloat(row.querySelector('.buy').value) || 0;
+            const c = parseFloat(row.querySelector('.curr').value) || 0;
+            const invest = q * b;
+            const evalAmt = q * c;
+            tInvest += invest;
+            tEval += evalAmt;
+            const r = invest > 0 ? ((evalAmt - invest) / invest * 100).toFixed(2) : 0;
+            const ratioCell = row.querySelector('.ratio');
+            ratioCell.innerText = r + "%";
+            ratioCell.className = 'ratio ' + (r >= 0 ? 'positive' : 'negative');
+        });
+
+        const tProfit = tEval - tInvest;
+        const tRatio = tInvest > 0 ? (tProfit / tInvest * 100).toFixed(2) : 0;
+        document.getElementById('total-invest').innerText = tInvest.toLocaleString() + "원";
+        document.getElementById('total-profit').innerText = tProfit.toLocaleString() + "원";
+        document.getElementById('total-profit').className = tProfit >= 0 ? 'positive' : 'negative';
+        document.getElementById('total-ratio').innerText = tRatio + "%";
+        document.getElementById('total-ratio').className = tRatio >= 0 ? 'positive' : 'negative';
+
+        let tDeposit = 0;
+        document.querySelectorAll('#deposit-list tr').forEach(row => {
+            tDeposit += parseFloat(row.querySelector('.amount').value) || 0;
+        });
+        document.getElementById('total-deposit-sum').innerText = tDeposit.toLocaleString() + "원";
+    }
+
+    function saveData() {
+        const stocks = [];
+        document.querySelectorAll('#stock-list tr').forEach(row => {
+            stocks.push({
+                name: row.querySelector('.name').value,
+                qty: row.querySelector('.qty').value,
+                buy: row.querySelector('.buy').value,
+                curr: row.querySelector('.curr').value
+            });
+        });
+        const deposits = [];
+        document.querySelectorAll('#deposit-list tr').forEach(row => {
+            deposits.push({
+                date: row.querySelector('.date').value,
+                amount: row.querySelector('.amount').value,
+                note: row.querySelector('.note').value
+            });
+        });
+        localStorage.setItem('myStockDataV2', JSON.stringify({stocks, deposits}));
+        alert("성공적으로 저장되었습니다!");
+    }
+
+    window.onload = function() {
+        const saved = localStorage.getItem('myStockDataV2');
+        if (saved) {
+            const data = JSON.parse(saved);
+            if(data.stocks.length > 0) data.stocks.forEach(s => addRow('stock-list', s));
+            else addRow('stock-list');
+            if(data.deposits.length > 0) data.deposits.forEach(d => addRow('deposit-list', d));
+            else addRow('deposit-list');
+        } else {
+            addRow('stock-list');
+            addRow('deposit-list');
+        }
+    };
+</script>
+
+</body>
+</html>
