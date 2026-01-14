@@ -210,4 +210,184 @@
             const j = await r.json();
             fx = JSON.parse(j.contents).chart.result[0].meta.regularMarketPrice;
             document.getElementById('fx-now').innerText = fx.toLocaleString('ko-KR', {maximumFractionDigits:1}) + "원";
-        } catch
+        } catch(e) {}
+    }
+
+    // --- 시세 업데이트 (병렬 처리로 속도 최적화) ---
+    async function updateAllParallel() {
+        const btn = document.getElementById('upd-btn');
+        btn.innerText = "⚡ 빛의 속도로 조회 중...";
+        
+        await getFx(); // 환율 먼저 가져오기
+
+        const rows = Array.from(document.querySelectorAll('#list-stocks tr'));
+        const promises = rows.map(async (row) => {
+            let ticker = row.querySelector('.n').value.trim().toUpperCase();
+            if(!ticker) return;
+            if(!isNaN(ticker) && ticker.length === 6) ticker += ".KS";
+
+            try {
+                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`)}`);
+                const json = await res.json();
+                const price = JSON.parse(json.contents).chart.result[0].meta.regularMarketPrice;
+                if(price) row.querySelector('.c').value = price.toFixed(2);
+            } catch (e) { console.error(ticker + " 조회 실패"); }
+        });
+
+        await Promise.all(promises); // 모든 요청을 동시에 실행
+        btn.innerText = "🔄 초고속 시세 동기화";
+        calc(); // 시세 업데이트 후 전체 계산
+        saveStocks();
+    }
+
+    // --- 납입 원금 로직 ---
+    window.saveBaseDeposit = () => {
+        const base = parseInt(document.getElementById('base-deposit').value) || 0;
+        db.ref('baseDeposit').set(base).then(() => {
+            loadDeposits(); // 합계 재계산
+        });
+    };
+
+    window.addDeposit = () => {
+        const date = document.getElementById('dep-date').value;
+        const amount = parseInt(document.getElementById('dep-amount').value);
+        if(!date || !amount) return alert("날짜와 금액을 입력하세요.");
+        db.ref('deposits').push({ date, amount }).then(() => {
+            document.getElementById('dep-amount').value = '';
+            loadDeposits();
+        });
+    };
+
+    function loadDeposits() {
+        db.ref('baseDeposit').once('value', baseSnap => {
+            const baseAmount = baseSnap.val() || 0;
+            document.getElementById('base-deposit').value = baseAmount; // 입력창에도 반영
+
+            db.ref('deposits').on('value', snap => {
+                const data = snap.val();
+                const list = document.getElementById('list-deposit');
+                list.innerHTML = '';
+                
+                let detailTotal = 0; 
+                let yearTotal = 0;
+                const currentYear = new Date().getFullYear().toString();
+
+                if(data) {
+                    // 최신 기록이 위로 오도록 배열을 뒤집음
+                    const sortedKeys = Object.keys(data).sort((a,b) => new Date(data[b].date) - new Date(data[a].date));
+                    sortedKeys.forEach(key => {
+                        const item = data[key];
+                        detailTotal += item.amount;
+                        if(item.date.startsWith(currentYear)) yearTotal += item.amount;
+                        
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${item.date}</td>
+                            <td>${item.amount.toLocaleString()}원</td>
+                            <td onclick="delDep('${key}')" style="cursor:pointer; color:#ccc;">❌</td>
+                        `;
+                        list.appendChild(tr); // 뒤집었으니 그냥 append
+                    });
+                }
+
+                const grandTotal = baseAmount + detailTotal;
+
+                document.getElementById('grand-total').innerText = grandTotal.toLocaleString() + "원";
+                document.getElementById('year-total').innerText = yearTotal.toLocaleString() + "원";
+                document.getElementById('sum-deposit').innerText = grandTotal.toLocaleString() + "원";
+                
+                calc(); // 납입원금 변경 시 전체 계산
+            });
+        });
+    }
+
+    window.delDep = (key) => {
+        if(confirm("기록을 삭제하시겠습니까?")) db.ref('deposits').child(key).remove();
+    };
+
+    // --- 주식 로직 ---
+    window.addRow = (d={}) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="n" value="${d.n||''}" placeholder="AAPL" onchange="saveStocks()"></td>
+            <td><input type="number" class="q" value="${d.q||0}" step="any" placeholder="0.0" oninput="calc();saveStocks();"></td>
+            <td><input type="number" class="b" value="${d.b||0}" step="any" oninput="calc();saveStocks();"></td>
+            <td><input type="number" class="c" value="${d.c||0}" readonly></td>
+            <td class="r" style="font-weight:bold">0%</td>
+            <td onclick="this.closest('tr').remove();saveStocks();calc();" style="cursor:pointer; color:#ccc;">❌</td>
+        `;
+        document.getElementById('list-stocks').appendChild(tr);
+    };
+
+    window.calc = () => {
+        let tVal = 0, tBuy = 0;
+        document.querySelectorAll('#list-stocks tr').forEach(row => {
+            const q = parseFloat(row.querySelector('.q').value)||0;
+            const b = parseFloat(row.querySelector('.b').value)||0;
+            const c = parseFloat(row.querySelector('.c').value)||0;
+            const ticker = row.querySelector('.n').value.toUpperCase();
+            
+            const m = (isNaN(ticker) || ticker.length !== 6) ? fx : 1;
+            
+            const rowBuy = q * b * m; // 매수 원금 계산
+            const rowVal = q * c * m; // 평가 금액 계산
+            const pct = b > 0 ? ((c - b) / b * 100).toFixed(2) : 0;
+            
+            row.querySelector('.r').innerText = pct + "%";
+            row.querySelector('.r').className = 'r ' + (pct >= 0 ? 'pos' : 'neg');
+            
+            tBuy += rowBuy;
+            tVal += rowVal;
+        });
+        
+        document.getElementById('sum-val').innerText = Math.floor(tVal).toLocaleString() + "원";
+        
+        const grandTotalDeposit = parseFloat(document.getElementById('sum-deposit').innerText.replace(/,/g, '')) || 0;
+        if (grandTotalDeposit > 0) {
+            const totalPct = ((tVal - grandTotalDeposit) / grandTotalDeposit * 100).toFixed(2);
+            const sumPctEl = document.getElementById('sum-pct');
+            sumPctEl.innerText = totalPct + "%";
+            sumPctEl.className = totalPct >= 0 ? 'pos' : 'neg';
+        } else { // 납입 원금이 0일 경우 수익률도 0으로 표시
+            document.getElementById('sum-pct').innerText = "0%";
+            document.getElementById('sum-pct').className = "";
+        }
+    };
+
+    window.saveStocks = () => {
+        const data = Array.from(document.querySelectorAll('#list-stocks tr')).map(row => ({
+            n: row.querySelector('.n').value.toUpperCase(),
+            q: row.querySelector('.q').value, b: row.querySelector('.b').value, c: row.querySelector('.c').value
+        }));
+        db.ref('stocks').set(data);
+    };
+
+    window.onload = () => {
+        document.getElementById('dep-date').valueAsDate = new Date();
+        getFx(); // 환율은 페이지 로드 시 한 번만 가져옴
+        loadDeposits(); // 납입 원금 먼저 로드
+        
+        // 주식 데이터 로드
+        db.ref('stocks').once('value', snap => {
+            const data = snap.val();
+            document.getElementById('list-stocks').innerHTML = "";
+            if(data) data.forEach(addRow); else addRow();
+            calc();
+        });
+
+        // 추천 종목 리스트 렌더링 (이전과 동일)
+        const recList = document.getElementById('rec-list');
+        recommendations.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'rec-item';
+            div.innerHTML = `
+                <div style="font-size:12px; color:#94a3b8;">${item.tag==='KOR'?'국내':'해외'}</div>
+                <div style="font-weight:800; font-size:16px; margin-top:5px;">${item.name}</div>
+                <div style="font-size:13px; color:#64748b; margin-top:5px;">${item.desc}</div>
+            `;
+            recList.appendChild(div);
+        });
+    };
+</script>
+</body>
+</html>
