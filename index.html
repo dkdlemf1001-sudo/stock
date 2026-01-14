@@ -1,241 +1,54 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>INVESTOR PRO - Speed Max</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root { --main: #0f172a; --accent: #f59e0b; --bg: #f8fafc; --white: #ffffff; --red: #ef4444; --blue: #3b82f6; }
-        * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-        body { background: var(--bg); margin: 0; padding-bottom: 50px; color: #1e293b; }
-        
-        header { background: var(--main); color: white; padding: 30px 20px; text-align: center; }
-        .summary-card { background: var(--white); width: 92%; margin: -20px auto 20px; border-radius: 20px; padding: 20px; display: flex; justify-content: space-around; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
-        .summary-item label { display: block; color: #64748b; font-size: 12px; margin-bottom: 4px; }
-        .summary-item span { font-size: 18px; font-weight: 800; }
-
-        .container { max-width: 850px; margin: 0 auto; padding: 10px; }
-        .tabs { display: flex; background: #e2e8f0; border-radius: 12px; padding: 4px; margin-bottom: 15px; overflow-x: auto; }
-        .tab { flex: 1; padding: 12px; border: none; background: none; font-weight: 700; color: #64748b; cursor: pointer; border-radius: 8px; white-space: nowrap; }
-        .tab.active { background: var(--white); color: var(--main); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-
-        .content { display: none; }
-        .content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .section-card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 15px; }
-        .section-title { font-size: 15px; font-weight: 800; margin-bottom: 15px; color: var(--main); border-left: 4px solid var(--accent); padding-left: 10px; }
-
-        .input-group { display: flex; gap: 8px; margin-bottom: 15px; }
-        .input-group input { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px 8px; color: #94a3b8; font-size: 12px; border-bottom: 1px solid #f1f5f9; }
-        td { padding: 12px 8px; border-bottom: 1px solid #f8fafc; font-size: 14px; }
-        
-        .btn-action { background: var(--main); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
-        .btn-action:active { transform: scale(0.98); opacity: 0.9; }
-        
-        .pos { color: var(--red); }
-        .neg { color: var(--blue); }
-    </style>
-</head>
-<body>
-
-<header><h1>INVESTOR PRO</h1></header>
-
-<div class="summary-card">
-    <div class="summary-item"><label>평가 자산</label><span id="sum-val">0</span></div>
-    <div class="summary-item"><label>납입 원금</label><span id="sum-deposit">0</span></div>
-    <div class="summary-item"><label>수익률</label><span id="sum-pct">0%</span></div>
-</div>
-
-<div class="container">
-    <div class="tabs">
-        <button class="tab active" onclick="tab(0)">포트폴리오</button>
-        <button class="tab" onclick="tab(1)">납입 원금 관리</button>
-        <button class="tab" onclick="tab(2)">추천 10선</button>
-    </div>
-
-    <div id="c0" class="content active">
-        <button class="btn-action" onclick="updateAllParallel()" id="upd-btn">🔄 초고속 시세 동기화</button>
-        <div class="section-card" style="margin-top:15px;">
-            <div class="section-title">보유 자산</div>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead><tr><th>종목</th><th>수량</th><th>평단</th><th>현재가</th><th>수익</th><th></th></tr></thead>
-                    <tbody id="list-stocks"></tbody>
-                </table>
-            </div>
-            <button class="btn-action" style="background:#f1f5f9; color:#475569; margin-top:15px;" onclick="addRow()">+ 종목 추가</button>
-        </div>
-    </div>
-
-    <div id="c1" class="content">
-        <div class="section-card">
-            <div class="section-title">오늘의 납입 금액</div>
-            <div class="input-group">
-                <input type="date" id="dep-date">
-                <input type="number" id="dep-amount" placeholder="금액 입력(₩)">
-                <button class="btn-action" style="width:80px;" onclick="addDeposit()">기록</button>
-            </div>
-        </div>
-        <div class="section-card">
-            <div class="section-title">이달의 납입 내역</div>
-            <table id="deposit-table">
-                <thead><tr><th>날짜</th><th>금액</th><th>삭제</th></tr></thead>
-                <tbody id="list-deposit"></tbody>
-            </table>
-        </div>
-        <div class="section-card">
-            <div class="section-title">납입 총계</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div style="background:#f8fafc; padding:15px; border-radius:12px; text-align:center;">
-                    <small style="color:#64748b;">올해 납입 (2026)</small>
-                    <div id="year-total" style="font-weight:800; font-size:18px; margin-top:5px;">0원</div>
-                </div>
-                <div style="background:#f8fafc; padding:15px; border-radius:12px; text-align:center;">
-                    <small style="color:#64748b;">총 납입 원금</small>
-                    <div id="grand-total" style="font-weight:800; font-size:18px; margin-top:5px;">0원</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="c2" class="content">
-        <div class="section-card" id="rec-list"></div>
-    </div>
-</div>
-
 <script>
-    const config = {
-        apiKey: "AIzaSyCtB8mZExH43WIRR2DFQ2E5DjHAUZp1TzI",
-        authDomain: "my-stock-site.firebaseapp.com",
-        projectId: "my-stock-site",
-        databaseURL: "https://my-stock-site-default-rtdb.firebaseio.com", 
-        appId: "1:647621503807:web:577ea9e4c5ad70817b418a"
-    };
-    firebase.initializeApp(config);
-    const db = firebase.database();
-    let fx = 1350;
+    // ... 기존 설정 생략 ...
 
-    function tab(i) {
-        document.querySelectorAll('.content').forEach((c,idx) => c.classList.toggle('active', i===idx));
-        document.querySelectorAll('.tab').forEach((t,idx) => t.classList.toggle('active', i===idx));
-    }
-
-    // --- 시세 업데이트 (병렬 처리로 속도 최적화) ---
-    async function updateAllParallel() {
-        const btn = document.getElementById('upd-btn');
-        btn.innerText = "⚡ 빛의 속도로 조회 중...";
-        
-        const rows = Array.from(document.querySelectorAll('#list-stocks tr'));
-        const promises = rows.map(async (row) => {
-            let ticker = row.querySelector('.n').value.trim().toUpperCase();
-            if(!ticker) return;
-            if(!isNaN(ticker) && ticker.length === 6) ticker += ".KS";
-
-            try {
-                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}`)}`);
-                const json = await res.json();
-                const price = JSON.parse(json.contents).chart.result[0].meta.regularMarketPrice;
-                if(price) row.querySelector('.c').value = price.toFixed(2);
-            } catch (e) { console.error(ticker + " 실패"); }
-        });
-
-        await Promise.all(promises); // 모든 요청을 동시에 실행
-        btn.innerText = "🔄 초고속 시세 동기화";
-        calc();
-        saveStocks();
-    }
-
-    // --- 납입 원금 로직 ---
-    window.addDeposit = () => {
-        const date = document.getElementById('dep-date').value;
-        const amount = parseInt(document.getElementById('dep-amount').value);
-        if(!date || !amount) return;
-        db.ref('deposits').push({ date, amount }).then(() => {
-            document.getElementById('dep-amount').value = '';
-            loadDeposits();
-        });
-    };
-
-    function loadDeposits() {
-        db.ref('deposits').on('value', snap => {
-            const data = snap.val();
-            const list = document.getElementById('list-deposit');
-            list.innerHTML = '';
-            let total = 0, yearTotal = 0;
-            if(data) {
-                Object.keys(data).forEach(key => {
-                    const item = data[key];
-                    total += item.amount;
-                    if(item.date.startsWith("2026")) yearTotal += item.amount;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${item.date}</td><td>${item.amount.toLocaleString()}원</td><td onclick="delDep('${key}')">❌</td>`;
-                    list.prepend(tr);
-                });
-            }
-            document.getElementById('grand-total').innerText = total.toLocaleString() + "원";
-            document.getElementById('year-total').innerText = yearTotal.toLocaleString() + "원";
-            document.getElementById('sum-deposit').innerText = total.toLocaleString();
-        });
-    }
-
-    window.delDep = (key) => db.ref('deposits').child(key).remove();
-
-    // --- 주식 로직 ---
+    // --- 주식 로직 (소수점 지원 업데이트) ---
     window.addRow = (d={}) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><input type="text" class="n" value="${d.n||''}" placeholder="AAPL" onchange="saveStocks()"></td>
-            <td><input type="number" class="q" value="${d.q||0}" oninput="calc();saveStocks();"></td>
-            <td><input type="number" class="b" value="${d.b||0}" oninput="calc();saveStocks();"></td>
+            <td><input type="number" class="q" value="${d.q||0}" step="any" placeholder="0.0" oninput="calc();saveStocks();"></td>
+            <td><input type="number" class="b" value="${d.b||0}" step="any" oninput="calc();saveStocks();"></td>
             <td><input type="number" class="c" value="${d.c||0}" readonly></td>
             <td class="r" style="font-weight:bold">0%</td>
-            <td onclick="this.closest('tr').remove();saveStocks();calc();">❌</td>
+            <td onclick="this.closest('tr').remove();saveStocks();calc();" style="cursor:pointer; color:#ccc;">❌</td>
         `;
         document.getElementById('list-stocks').appendChild(tr);
     };
 
     window.calc = () => {
-        let tVal = 0, tBuy = 0;
+        let tVal = 0;
         document.querySelectorAll('#list-stocks tr').forEach(row => {
-            const q = parseFloat(row.querySelector('.q').value)||0;
-            const b = parseFloat(row.querySelector('.b').value)||0;
-            const c = parseFloat(row.querySelector('.c').value)||0;
-            const m = (isNaN(row.querySelector('.n').value) || row.querySelector('.n').value.length !== 6) ? fx : 1;
+            // parseFloat을 사용하여 소수점 수량을 정확히 읽음
+            const q = parseFloat(row.querySelector('.q').value) || 0;
+            const b = parseFloat(row.querySelector('.b').value) || 0;
+            const c = parseFloat(row.querySelector('.c').value) || 0;
+            const ticker = row.querySelector('.n').value.toUpperCase();
+            
+            // 국장/미장 환율 구분 (영문 티커면 미장으로 간주하여 환율 적용)
+            const m = (isNaN(ticker) || ticker.length !== 6) ? fx : 1;
             
             const rowVal = q * c * m;
-            const pct = b > 0 ? ((c-b)/b*100).toFixed(2) : 0;
-            row.querySelector('.r').innerText = pct + "%";
-            row.querySelector('.r').className = 'r ' + (pct >= 0 ? 'pos' : 'neg');
+            const pct = b > 0 ? ((c - b) / b * 100).toFixed(2) : 0;
+            
+            const rCell = row.querySelector('.r');
+            rCell.innerText = pct + "%";
+            rCell.className = 'r ' + (pct >= 0 ? 'pos' : 'neg');
+            
             tVal += rowVal;
         });
+        
+        // 상단 평가 자산 업데이트
         document.getElementById('sum-val').innerText = Math.floor(tVal).toLocaleString();
+        
+        // 수익률 요약 계산 (총 납입금 대비 평가액)
+        const totalDeposit = parseFloat(document.getElementById('sum-deposit').innerText.replace(/,/g, '')) || 0;
+        if (totalDeposit > 0) {
+            const totalPct = ((tVal - totalDeposit) / totalDeposit * 100).toFixed(2);
+            const sumPctEl = document.getElementById('sum-pct');
+            sumPctEl.innerText = totalPct + "%";
+            sumPctEl.className = totalPct >= 0 ? 'pos' : 'neg';
+        }
     };
 
-    window.saveStocks = () => {
-        const data = Array.from(document.querySelectorAll('#list-stocks tr')).map(row => ({
-            n: row.querySelector('.n').value.toUpperCase(),
-            q: row.querySelector('.q').value, b: row.querySelector('.b').value, c: row.querySelector('.c').value
-        }));
-        db.ref('stocks').set(data);
-    };
-
-    window.onload = () => {
-        document.getElementById('dep-date').valueAsDate = new Date();
-        loadDeposits();
-        db.ref('stocks').once('value', snap => {
-            const data = snap.val();
-            document.getElementById('list-stocks').innerHTML = "";
-            if(data) data.forEach(addRow); else addRow();
-            calc();
-        });
-    };
+    // ... 나머지 saveStocks, updateAllParallel 등은 기존과 동일 ...
 </script>
-</body>
-</html>
