@@ -3,37 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>INVESTOR PRO - Moka Special</title>
+    <title>INVESTOR PRO - Optimized</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #0f172a; --accent: #f59e0b; --bg: #f8fafc; --white: #ffffff; --red: #ef4444; --blue: #3b82f6; }
-        * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        :root { --main: #0f172a; --accent: #f59e0b; --bg: #f8fafc; --white: #ffffff; --red: #ef4444; --blue: #3b82f6; --gray: #64748b; }
+        * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); margin: 0; padding-bottom: 50px; color: #1e293b; }
         
         .fx-panel { background: #000; color: #fff; padding: 10px; font-size: 12px; text-align: center; font-weight: 600; }
-        .fx-panel b { color: var(--accent); }
-
         header { background: var(--main); color: white; padding: 30px 20px; text-align: center; }
+        
         .summary-card { background: var(--white); width: 92%; margin: -20px auto 20px; border-radius: 20px; padding: 20px; display: flex; justify-content: space-around; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
-        .summary-item label { display: block; color: #64748b; font-size: 12px; margin-bottom: 4px; }
-        .summary-item span { font-size: 18px; font-weight: 800; }
+        .summary-item label { display: block; color: var(--gray); font-size: 11px; margin-bottom: 4px; }
+        .summary-item span { font-size: 17px; font-weight: 800; }
 
         .container { max-width: 850px; margin: 0 auto; padding: 10px; }
-        .tabs { display: flex; background: #e2e8f0; border-radius: 12px; padding: 4px; margin-bottom: 15px; overflow-x: auto; }
-        .tab { flex: 1; padding: 12px; border: none; background: none; font-weight: 700; color: #64748b; cursor: pointer; border-radius: 8px; white-space: nowrap; }
+        .tabs { display: flex; background: #e2e8f0; border-radius: 12px; padding: 4px; margin-bottom: 15px; }
+        .tab { flex: 1; padding: 12px; border: none; background: none; font-weight: 700; color: var(--gray); cursor: pointer; border-radius: 8px; }
         .tab.active { background: var(--white); color: var(--main); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
         .content { display: none; }
         .content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
 
         .section-card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-bottom: 15px; }
         .section-title { font-size: 15px; font-weight: 800; margin-bottom: 15px; color: var(--main); border-left: 4px solid var(--accent); padding-left: 10px; }
 
         .input-group { display: flex; gap: 8px; margin-bottom: 15px; }
-        .input-group input { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; }
+        .input-group input { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fbfcfd; }
         
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 12px 8px; color: #94a3b8; font-size: 12px; border-bottom: 1px solid #f1f5f9; }
@@ -44,69 +43,35 @@
         
         .pos { color: var(--red); }
         .neg { color: var(--blue); }
-
-        /* Moka 전용 스타일 */
-        .moka-card {
-            background: linear-gradient(135deg, #fce4ec 0%, #e0f2f7 100%); /* 파스텔 그라데이션 */
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-        .moka-card h3 {
-            color: #d81b60; /* 핑크빛 강조 */
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
-        .moka-card img {
-            max-width: 80%;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            border: 3px solid #f8bbd0; /* 은은한 테두리 */
-        }
-        .moka-card p {
-            color: #4a148c; /* 보랏빛 텍스트 */
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-        .moka-card .hashtags {
-            color: #880e4f;
-            font-size: 14px;
-            font-weight: 600;
-        }
+        input[readonly] { background: #f1f5f9; color: #64748b; }
     </style>
 </head>
 <body>
 
-<div class="fx-panel">실시간 환율 <b>USD/KRW: <span id="fx-now">...</span></b></div>
+<div class="fx-panel">실시간 USD 환율: <b id="fx-now">1,350</b>원</div>
 
 <header><h1>INVESTOR PRO</h1></header>
 
 <div class="summary-card">
-    <div class="summary-item"><label>평가 자산</label><span id="sum-val">0</span></div>
-    <div class="summary-item"><label>납입 원금</label><span id="sum-deposit">0</span></div>
-    <div class="summary-item"><label>수익률</label><span id="sum-pct">0%</span></div>
+    <div class="summary-item"><label>평가 자산</label><span id="sum-val">0원</span></div>
+    <div class="summary-item"><label>총 납입 원금</label><span id="sum-deposit">0원</span></div>
+    <div class="summary-item"><label>총 수익률</label><span id="sum-pct">0%</span></div>
 </div>
 
 <div class="container">
     <div class="tabs">
         <button class="tab active" onclick="tab(0)">포트폴리오</button>
-        <button class="tab" onclick="tab(1)">납입 원금 관리</button>
+        <button class="tab" onclick="tab(1)">납입 관리</button>
         <button class="tab" onclick="tab(2)">추천 10선</button>
-        <button class="tab" onclick="tab(3)">아일릿 모카 스페셜</button> 
     </div>
 
     <div id="c0" class="content active">
-        <button class="btn-action" onclick="updateAllParallel()" id="upd-btn">🔄 초고속 시세 동기화</button>
+        <button class="btn-action" onclick="updateAllParallel()" id="upd-btn">🔄 실시간 시세 동기화</button>
         <div class="section-card" style="margin-top:15px;">
-            <div class="section-title">보유 자산</div>
+            <div class="section-title">보유 자산 목록</div>
             <div style="overflow-x:auto;">
                 <table>
-                    <thead><tr><th>종목</th><th>수량</th><th>평단</th><th>현재가</th><th>수익</th><th></th></tr></thead>
+                    <thead><tr><th>종목</th><th>수량</th><th>평단</th><th>현재가</th><th>수익률</th><th></th></tr></thead>
                     <tbody id="list-stocks"></tbody>
                 </table>
             </div>
@@ -115,61 +80,28 @@
     </div>
 
     <div id="c1" class="content">
-        <div class="section-card" style="border: 1px solid #e2e8f0; background: #fdfdfd;">
-            <div class="section-title">초기 설정: 기 납입 원금</div>
-            <p style="font-size: 12px; color: #64748b; margin-top: -10px; margin-bottom: 10px;">
-                서비스 이용 전 이미 납입된 총 금액을 입력하세요.
-            </p>
+        <div class="section-card">
+            <div class="section-title">기 납입 원금 (초기 설정)</div>
             <div class="input-group">
-                <input type="number" id="base-deposit" placeholder="기존 납입 총액(₩)" onchange="saveBaseDeposit()">
-                <div style="font-size: 12px; align-self: center; color: #94a3b8;">원</div>
+                <input type="number" id="base-deposit" placeholder="기존 투자 총액 입력(₩)" onchange="saveBaseDeposit()">
             </div>
         </div>
-
         <div class="section-card">
-            <div class="section-title">오늘의 추가 납입 기록</div>
+            <div class="section-title">추가 납입 기록</div>
             <div class="input-group">
                 <input type="date" id="dep-date">
-                <input type="number" id="dep-amount" placeholder="추가 금액 입력(₩)">
+                <input type="number" id="dep-amount" placeholder="입금액(₩)">
                 <button class="btn-action" style="width:80px;" onclick="addDeposit()">기록</button>
             </div>
-        </div>
-        <div class="section-card">
-            <div class="section-title">이달의 납입 내역</div>
-            <table id="deposit-table">
+            <table style="margin-top:15px;">
                 <thead><tr><th>날짜</th><th>금액</th><th>삭제</th></tr></thead>
                 <tbody id="list-deposit"></tbody>
             </table>
-        </div>
-        <div class="section-card">
-            <div class="section-title">납입 총계</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div style="background:#f8fafc; padding:15px; border-radius:12px; text-align:center;">
-                    <small style="color:#64748b;">올해 납입 (2026)</small>
-                    <div id="year-total" style="font-weight:800; font-size:18px; margin-top:5px;">0원</div>
-                </div>
-                <div style="background:#f8fafc; padding:15px; border-radius:12px; text-align:center;">
-                    <small style="color:#64748b;">총 납입 원금</small>
-                    <div id="grand-total" style="font-weight:800; font-size:18px; margin-top:5px;">0원</div>
-                </div>
-            </div>
         </div>
     </div>
 
     <div id="c2" class="content">
         <div class="section-card" id="rec-list"></div>
-    </div>
-    
-    <div id="c3" class="content"> 
-        <div class="moka-card">
-            <h3>✨ 나의 비타민, 아일릿 모카 ✨</h3>
-            <img src="https://i.ibb.co/Lp2H7m3/moka-illit.jpg" alt="아일릿 모카" width="400">
-            <p>
-                언제나 너의 꿈을 응원해. 힘든 순간도 두루뭉술 다가서면 힘이 돼! 
-                <br>투자의 여정에도 너의 긍정 에너지가 함께하길!
-            </p>
-            <div class="hashtags">#ILLIT #모카 #엉영해</div>
-        </div>
     </div>
 </div>
 
@@ -183,42 +115,28 @@
     };
     firebase.initializeApp(config);
     const db = firebase.database();
-    let fx = 1350; // 기본 환율
-
-    // 추천 종목 데이터 (이전과 동일)
-    const recommendations = [
-        { name: "삼성전자 (005930)", tag: "KOR", desc: "국내 시총 1위. 반도체 사이클 회복 및 HBM 공급 확대 수혜 기대. 장기 우상향 가치 최상." },
-        { name: "SK하이닉스 (000660)", tag: "KOR", desc: "AI 반도체(HBM) 시장의 실질적 주도주. 압도적인 기술 경쟁력으로 고성장세 지속." },
-        { name: "현대차 (005380)", tag: "KOR", desc: "역대급 실적 및 주주환원 정책 강화. 저PBR 매력과 전기차/하이브리드 경쟁력 겸비." },
-        { name: "NVIDIA (NVDA)", tag: "USA", desc: "AI 시대의 심장. GPU 시장 독점으로 폭발적 이익 성장. 거래량 및 모멘텀 전세계 1위." },
-        { name: "Microsoft (MSFT)", tag: "USA", desc: "소프트웨어와 AI 솔루션의 결합. 클라우드(Azure)의 강력한 현금 흐름 기반 장기 안정주." },
-        { name: "Apple (AAPL)", tag: "USA", desc: "강력한 브랜드 생태계와 자사주 매입. 경기 방어적 성격과 장기 우상향의 정석." },
-        { name: "Alphabet C (GOOG)", tag: "USA", desc: "검색 엔진 독점력과 유튜브 가치. 의결권은 없으나 주가 흐름은 A주와 동일하며 저평가 매력." },
-        { name: "Amazon (AMZN)", tag: "USA", desc: "이커머스 지배력과 클라우드 수익성 개선. AI 인프라 투자 확대로 새로운 성장 국면 진입." },
-        { name: "Eli Lilly (LLY)", tag: "USA", desc: "비만치료제 시장의 선두주자. 헬스케어 분야에서 가장 강력한 우상향 추세를 보이는 종목." },
-        { name: "TSMC (TSM)", tag: "USA", desc: "글로벌 파운드리 점유율 1위. 모든 AI 칩은 여기서 생산됨. 반도체 시장의 독점적 지위 보유." }
-    ];
+    let globalFX = 1350;
 
     function tab(i) {
-        document.querySelectorAll('.content').forEach((c,idx) => c.classList.toggle('active', i===idx));
-        document.querySelectorAll('.tab').forEach((t,idx) => t.classList.toggle('active', i===idx));
+        document.querySelectorAll('.content').forEach((c, idx) => c.classList.toggle('active', i === idx));
+        document.querySelectorAll('.tab').forEach((t, idx) => t.classList.toggle('active', i === idx));
     }
 
-    async function getFx() {
+    // 환율 정보 가져오기
+    async function fetchFX() {
         try {
             const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/USDKRW=X')}`);
             const j = await r.json();
-            fx = JSON.parse(j.contents).chart.result[0].meta.regularMarketPrice;
-            document.getElementById('fx-now').innerText = fx.toLocaleString('ko-KR', {maximumFractionDigits:1}) + "원";
-        } catch(e) {}
+            globalFX = JSON.parse(j.contents).chart.result[0].meta.regularMarketPrice;
+            document.getElementById('fx-now').innerText = globalFX.toLocaleString('ko-KR', {maximumFractionDigits:1});
+        } catch(e) { console.error("환율 로드 실패"); }
     }
 
-    // --- 시세 업데이트 (병렬 처리로 속도 최적화) ---
+    // 시세 병렬 업데이트 (성능 최적화)
     async function updateAllParallel() {
         const btn = document.getElementById('upd-btn');
-        btn.innerText = "⚡ 빛의 속도로 조회 중...";
-        
-        await getFx(); // 환율 먼저 가져오기
+        btn.innerText = "⚡ 실시간 시세 조회 중...";
+        await fetchFX();
 
         const rows = Array.from(document.querySelectorAll('#list-stocks tr'));
         const promises = rows.map(async (row) => {
@@ -231,27 +149,60 @@
                 const json = await res.json();
                 const price = JSON.parse(json.contents).chart.result[0].meta.regularMarketPrice;
                 if(price) row.querySelector('.c').value = price.toFixed(2);
-            } catch (e) { console.error(ticker + " 조회 실패"); }
+            } catch (e) { console.error(ticker + " 실패"); }
         });
 
-        await Promise.all(promises); // 모든 요청을 동시에 실행
-        btn.innerText = "🔄 초고속 시세 동기화";
-        calc(); // 시세 업데이트 후 전체 계산
+        await Promise.all(promises);
+        btn.innerText = "🔄 실시간 시세 동기화";
+        calc();
         saveStocks();
     }
 
-    // --- 납입 원금 로직 ---
-    window.saveBaseDeposit = () => {
-        const base = parseInt(document.getElementById('base-deposit').value) || 0;
-        db.ref('baseDeposit').set(base).then(() => {
-            loadDeposits(); // 합계 재계산
+    // 자산 계산 로직 (수익률 반영 수정)
+    function calc() {
+        let totalVal = 0;
+        
+        // 1. 개별 종목 평가액 계산
+        document.querySelectorAll('#list-stocks tr').forEach(row => {
+            const q = parseFloat(row.querySelector('.q').value) || 0;
+            const b = parseFloat(row.querySelector('.b').value) || 0;
+            const c = parseFloat(row.querySelector('.c').value) || 0;
+            const ticker = row.querySelector('.n').value.toUpperCase();
+            const m = (isNaN(ticker) || ticker.length !== 6) ? globalFX : 1;
+
+            const rowVal = q * c * m;
+            const pct = b > 0 ? ((c - b) / b * 100).toFixed(2) : 0;
+            
+            const rCell = row.querySelector('.r');
+            rCell.innerText = pct + "%";
+            rCell.className = 'r ' + (pct >= 0 ? 'pos' : 'neg');
+            totalVal += rowVal;
         });
+
+        // 2. 납입 원금 가져와서 총 수익률 계산
+        const depositTxt = document.getElementById('sum-deposit').innerText.replace(/[^0-9.-]/g, '');
+        const totalDeposit = parseFloat(depositTxt) || 0;
+
+        document.getElementById('sum-val').innerText = Math.floor(totalVal).toLocaleString() + "원";
+        
+        if (totalDeposit > 0) {
+            const totalPct = ((totalVal - totalDeposit) / totalDeposit * 100).toFixed(2);
+            const pctEl = document.getElementById('sum-pct');
+            pctEl.innerText = totalPct + "%";
+            pctEl.className = totalPct >= 0 ? 'pos' : 'neg';
+        }
+    }
+
+    // 납입금 관리
+    window.saveBaseDeposit = () => {
+        const val = parseInt(document.getElementById('base-deposit').value) || 0;
+        db.ref('baseDeposit').set(val).then(loadDeposits);
     };
 
     window.addDeposit = () => {
         const date = document.getElementById('dep-date').value;
         const amount = parseInt(document.getElementById('dep-amount').value);
-        if(!date || !amount) return alert("날짜와 금액을 입력하세요.");
+        if(!date || !amount) return;
         db.ref('deposits').push({ date, amount }).then(() => {
             document.getElementById('dep-amount').value = '';
             loadDeposits();
@@ -259,99 +210,45 @@
     };
 
     function loadDeposits() {
-        db.ref('baseDeposit').once('value', baseSnap => {
-            const baseAmount = baseSnap.val() || 0;
-            document.getElementById('base-deposit').value = baseAmount; // 입력창에도 반영
+        db.ref('baseDeposit').once('value', bSnap => {
+            const base = bSnap.val() || 0;
+            document.getElementById('base-deposit').value = base;
 
             db.ref('deposits').on('value', snap => {
                 const data = snap.val();
                 const list = document.getElementById('list-deposit');
                 list.innerHTML = '';
-                
-                let detailTotal = 0; 
-                let yearTotal = 0;
-                const currentYear = new Date().getFullYear().toString();
-
+                let extra = 0;
                 if(data) {
-                    // 최신 기록이 위로 오도록 배열을 뒤집음
-                    const sortedKeys = Object.keys(data).sort((a,b) => new Date(data[b].date) - new Date(data[a].date));
-                    sortedKeys.forEach(key => {
+                    Object.keys(data).forEach(key => {
                         const item = data[key];
-                        detailTotal += item.amount;
-                        if(item.date.startsWith(currentYear)) yearTotal += item.amount;
-                        
+                        extra += item.amount;
                         const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${item.date}</td>
-                            <td>${item.amount.toLocaleString()}원</td>
-                            <td onclick="delDep('${key}')" style="cursor:pointer; color:#ccc;">❌</td>
-                        `;
-                        list.appendChild(tr); // 뒤집었으니 그냥 append
+                        tr.innerHTML = `<td>${item.date}</td><td>${item.amount.toLocaleString()}원</td><td onclick="delDep('${key}')" style="cursor:pointer">❌</td>`;
+                        list.prepend(tr);
                     });
                 }
-
-                const grandTotal = baseAmount + detailTotal;
-
-                document.getElementById('grand-total').innerText = grandTotal.toLocaleString() + "원";
-                document.getElementById('year-total').innerText = yearTotal.toLocaleString() + "원";
+                const grandTotal = base + extra;
                 document.getElementById('sum-deposit').innerText = grandTotal.toLocaleString() + "원";
-                
-                calc(); // 납입원금 변경 시 전체 계산
+                calc(); // 원금 변경 시 수익률 즉시 갱신
             });
         });
     }
 
-    window.delDep = (key) => {
-        if(confirm("기록을 삭제하시겠습니까?")) db.ref('deposits').child(key).remove();
-    };
+    window.delDep = (k) => db.ref('deposits').child(k).remove();
 
-    // --- 주식 로직 ---
+    // 주식 행 관리
     window.addRow = (d={}) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" class="n" value="${d.n||''}" placeholder="AAPL" onchange="saveStocks()"></td>
-            <td><input type="number" class="q" value="${d.q||0}" step="any" placeholder="0.0" oninput="calc();saveStocks();"></td>
+            <td><input type="text" class="n" value="${d.n||''}" placeholder="AAPL"></td>
+            <td><input type="number" class="q" value="${d.q||0}" step="any" oninput="calc();saveStocks();"></td>
             <td><input type="number" class="b" value="${d.b||0}" step="any" oninput="calc();saveStocks();"></td>
             <td><input type="number" class="c" value="${d.c||0}" readonly></td>
-            <td class="r" style="font-weight:bold">0%</td>
-            <td onclick="this.closest('tr').remove();saveStocks();calc();" style="cursor:pointer; color:#ccc;">❌</td>
+            <td class="r" style="font-weight:700">0%</td>
+            <td onclick="this.closest('tr').remove();saveStocks();calc();" style="cursor:pointer;color:#ccc">❌</td>
         `;
         document.getElementById('list-stocks').appendChild(tr);
-    };
-
-    window.calc = () => {
-        let tVal = 0, tBuy = 0;
-        document.querySelectorAll('#list-stocks tr').forEach(row => {
-            const q = parseFloat(row.querySelector('.q').value)||0;
-            const b = parseFloat(row.querySelector('.b').value)||0;
-            const c = parseFloat(row.querySelector('.c').value)||0;
-            const ticker = row.querySelector('.n').value.toUpperCase();
-            
-            const m = (isNaN(ticker) || ticker.length !== 6) ? fx : 1;
-            
-            const rowBuy = q * b * m; // 매수 원금 계산
-            const rowVal = q * c * m; // 평가 금액 계산
-            const pct = b > 0 ? ((c - b) / b * 100).toFixed(2) : 0;
-            
-            row.querySelector('.r').innerText = pct + "%";
-            row.querySelector('.r').className = 'r ' + (pct >= 0 ? 'pos' : 'neg');
-            
-            tBuy += rowBuy;
-            tVal += rowVal;
-        });
-        
-        document.getElementById('sum-val').innerText = Math.floor(tVal).toLocaleString() + "원";
-        
-        const grandTotalDeposit = parseFloat(document.getElementById('sum-deposit').innerText.replace(/,/g, '')) || 0;
-        if (grandTotalDeposit > 0) {
-            const totalPct = ((tVal - grandTotalDeposit) / grandTotalDeposit * 100).toFixed(2);
-            const sumPctEl = document.getElementById('sum-pct');
-            sumPctEl.innerText = totalPct + "%";
-            sumPctEl.className = totalPct >= 0 ? 'pos' : 'neg';
-        } else { // 납입 원금이 0일 경우 수익률도 0으로 표시
-            document.getElementById('sum-pct').innerText = "0%";
-            document.getElementById('sum-pct').className = "";
-        }
     };
 
     window.saveStocks = () => {
@@ -362,30 +259,27 @@
         db.ref('stocks').set(data);
     };
 
-    window.onload = () => {
+    // 초기화
+    window.onload = async () => {
         document.getElementById('dep-date').valueAsDate = new Date();
-        getFx(); // 환율은 페이지 로드 시 한 번만 가져옴
-        loadDeposits(); // 납입 원금 먼저 로드
-        
-        // 주식 데이터 로드
+        await fetchFX();
+        loadDeposits();
         db.ref('stocks').once('value', snap => {
             const data = snap.val();
             document.getElementById('list-stocks').innerHTML = "";
             if(data) data.forEach(addRow); else addRow();
             calc();
         });
-
-        // 추천 종목 리스트 렌더링 (이전과 동일)
-        const recList = document.getElementById('rec-list');
-        recommendations.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'rec-item';
-            div.innerHTML = `
-                <div style="font-size:12px; color:#94a3b8;">${item.tag==='KOR'?'국내':'해외'}</div>
-                <div style="font-weight:800; font-size:16px; margin-top:5px;">${item.name}</div>
-                <div style="font-size:13px; color:#64748b; margin-top:5px;">${item.desc}</div>
-            `;
-            recList.appendChild(div);
+        
+        // 추천 리스트 (요약)
+        const recs = [
+            {n:"삼성전자", d:"반도체 업황 회복 기대"}, {n:"NVIDIA", d:"AI 반도체 독점적 지위"},
+            {n:"Apple", d:"강력한 생태계와 현금 흐름"}, {n:"SK하이닉스", d:"HBM 기술 리더십"}
+        ];
+        recs.forEach(r => {
+            const d = document.createElement('div');
+            d.innerHTML = `<div style="margin-bottom:10px;"><b>${r.n}</b>: <small>${r.d}</small></div>`;
+            document.getElementById('rec-list').appendChild(d);
         });
     };
 </script>
