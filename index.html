@@ -3,120 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LIFE OS - TOTAL PORTAL</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <title>LIFE OS - Master Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --main: #0f172a; --accent: #3b82f6; --bg: #f1f5f9; --card: #ffffff; --text: #1e293b; }
+        :root {
+            --main: #0f172a;
+            --accent: #3b82f6;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #1e293b;
+            --danger: #ef4444;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --gray: #94a3b8;
+        }
+
         * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text); padding-bottom: 80px; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
 
-        /* Navigation Bar (Bottom) */
-        nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 1000; }
-        .nav-item { border: none; background: none; font-size: 11px; font-weight: 700; color: #94a3b8; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .nav-item.active { color: var(--accent); }
-        .nav-item i { font-size: 20px; margin-bottom: 2px; }
+        /* --- Header & Layout --- */
+        header { background: var(--main); color: white; padding: 45px 20px 65px; text-align: left; }
+        header h1 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
+        header p { font-size: 14px; opacity: 0.7; margin-top: 6px; }
 
-        /* Top Header */
-        header { background: var(--main); color: white; padding: 40px 20px 60px; text-align: left; }
-        header h1 { font-size: 24px; font-weight: 800; }
-        header p { font-size: 14px; opacity: 0.7; margin-top: 5px; }
-
-        /* Main Container */
-        .container { max-width: 600px; margin: -30px auto 0; padding: 0 16px; }
-        .content { display: none; animation: slideUp 0.3s ease; }
+        .container { max-width: 600px; margin: -35px auto 0; padding: 0 16px; }
+        .content { display: none; animation: fadeIn 0.3s ease-in-out; }
         .content.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Card System */
-        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .card-title { font-size: 16px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        /* --- Card System --- */
+        .card { background: var(--card); border-radius: 24px; padding: 22px; margin-bottom: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid rgba(255,255,255,0.8); }
+        .card-title { font-size: 17px; font-weight: 800; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+
+        /* --- UI Elements --- */
+        .km-input-box { background: #1e293b; color: white; border-radius: 18px; padding: 20px; }
+        .km-input-box label { font-size: 12px; color: var(--gray); display: block; margin-bottom: 5px; }
+        .km-input-box input { background: transparent; border: none; color: white; font-size: 32px; font-weight: 800; width: 100%; outline: none; }
         
-        /* Elements */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .stat-box { background: #f8fafc; padding: 15px; border-radius: 12px; }
-        .stat-label { font-size: 12px; color: #64748b; }
-        .stat-value { font-size: 18px; font-weight: 800; margin-top: 5px; }
-        .btn-main { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--main); color: white; font-weight: 700; cursor: pointer; }
+        .car-table { width: 100%; border-collapse: collapse; }
+        .car-table th { font-size: 12px; color: #64748b; padding-bottom: 12px; border-bottom: 2px solid #f1f5f9; text-align: left; }
+        .car-table td { padding: 16px 8px; border-bottom: 1px solid #f8fafc; font-size: 14px; }
         
-        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-top: 8px; }
-        .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; margin-top: 10px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: 0.5s; }
+        .status-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-block; margin-top: 5px; }
+        .status-ok { background: #dcfce7; color: var(--success); }
+        .status-warn { background: #fef9c3; color: var(--warning); }
+        .status-danger { background: #fee2e2; color: var(--danger); }
+
+        /* --- Goals & Bucket List --- */
+        .goal-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f1f5f9; }
+        .goal-item:last-child { border-bottom: none; }
+        .goal-content { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+        .goal-cb { width: 22px; height: 22px; border: 2px solid #cbd5e1; border-radius: 7px; cursor: pointer; appearance: none; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .goal-cb:checked { background: var(--success); border-color: var(--success); }
+        .goal-cb:checked::after { content: '✓'; color: white; font-size: 14px; font-weight: 900; }
+        .completed-text { text-decoration: line-through; color: var(--gray); font-weight: 400; }
+
+        /* --- Navigation --- */
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 15px 0; box-shadow: 0 -5px 25px rgba(0,0,0,0.06); z-index: 1000; border-radius: 25px 25px 0 0; }
+        .nav-item { border: none; background: none; font-size: 11px; font-weight: 700; color: #94a3b8; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+        .nav-item i { font-style: normal; font-size: 22px; }
+        .nav-item.active { color: var(--accent); }
+
+        /* Inputs & Buttons */
+        .input-main { width: 100%; padding: 14px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 14px; outline: none; }
+        .input-main:focus { border-color: var(--accent); }
+        .btn-action { background: var(--main); color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<header id="main-header">
-    <h1>Hello, Boss</h1>
-    <p id="current-date">2026년 1월 14일 수요일</p>
+<header>
+    <h1 id="header-title">Hello, Boss</h1>
+    <p id="current-date">2026.01.14 Wednesday</p>
 </header>
 
 <div class="container">
     
     <div id="view-home" class="content active">
         <div class="card">
-            <div class="card-title">🚀 자산 현황</div>
-            <div class="grid-2">
-                <div class="stat-box"><div class="stat-label">투자 자산</div><div class="stat-value" id="home-stock">0원</div></div>
-                <div class="stat-box"><div class="stat-label">이번달 지출</div><div class="stat-value" id="home-spend">0원</div></div>
-            </div>
+            <div class="card-title">✨ 오늘의 요약</div>
+            <p id="home-msg" style="color:#64748b; font-size:14px; line-height:1.6;">목표와 차량 상태를 체크하고<br>생산적인 하루를 시작하세요!</p>
         </div>
         <div class="card">
-            <div class="card-title">🚗 차량 관리</div>
-            <p style="font-size:13px; color:#64748b;">다음 엔진오일 교체까지</p>
-            <div class="progress-bar"><div class="progress-fill" style="width: 70%;"></div></div>
-            <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:5px;"><span>현재 55,000km</span><span>목표 60,000km</span></div>
+            <div class="card-title">🚗 차량 알림</div>
+            <div id="home-car-summary" style="font-size:14px; font-weight:600;">데이터 계산 중...</div>
         </div>
         <div class="card">
-            <div class="card-title">🎯 핵심 목표</div>
-            <div style="font-size:14px;">"자산 10억 달성 및 체지방 15% 유지"</div>
+            <div class="card-title">🎯 남은 목표</div>
+            <div id="home-goal-summary" style="font-size:14px; font-weight:600;">데이터 계산 중...</div>
         </div>
     </div>
 
     <div id="view-stock" class="content">
         <div class="card">
             <div class="card-title">📈 포트폴리오</div>
-            <button class="btn-main" onclick="alert('시세 업데이트 로직 실행')">실시간 시세 동기화</button>
-            <div id="stock-list-mini" style="margin-top:15px;">
-                </div>
+            <div style="text-align:center; padding:40px 0; color:var(--gray);">
+                <p>주식 관리 엔진 준비 중</p>
+            </div>
         </div>
     </div>
 
     <div id="view-car" class="content">
+        <div class="card" style="padding:0; border:none; background:transparent;">
+            <div class="km-input-box">
+                <label>현재 주행거리 (km)</label>
+                <input type="number" id="current-km" value="55000" oninput="updateCarLogic()">
+            </div>
+        </div>
         <div class="card">
-            <div class="card-title">🚘 소모품 주기</div>
-            <div class="stat-box" style="margin-bottom:10px;">
-                <div class="stat-label">누적 주행거리</div>
-                <input type="number" id="car-km" placeholder="55,000" onchange="updateCar()">
-            </div>
-            <div style="font-size:14px; line-height:2;">
-                ✅ 엔진오일: <b>5,000km 남음</b><br>
-                ✅ 타이어 로테이션: <b>12,000km 남음</b><br>
-                ✅ 브레이크 패드: <b>정상</b>
-            </div>
+            <div class="card-title">🛠️ 정비 장부</div>
+            <table class="car-table">
+                <thead>
+                    <tr><th>항목</th><th style="text-align:center;">남은 거리</th><th style="text-align:right;">이전 교체</th></tr>
+                </thead>
+                <tbody id="car-body"></tbody>
+            </table>
         </div>
     </div>
 
     <div id="view-goal" class="content">
         <div class="card">
-            <div class="card-title">🎯 버킷 리스트 & 목표</div>
-            <input type="text" placeholder="새로운 목표를 입력하고 Enter" onkeydown="if(event.key==='Enter') addGoal(this.value)">
-            <ul id="goal-list" style="margin-top:15px; list-style:none;">
-                <li style="padding:10px 0; border-bottom:1px solid #f1f5f9;">✔️ 영어 회화 중급 달성</li>
-                <li style="padding:10px 0; border-bottom:1px solid #f1f5f9;">✔️ 매일 영양제 챙겨먹기</li>
-            </ul>
+            <div class="card-title">🎯 목표 추가</div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="goal-input" class="input-main" placeholder="무엇을 이룰까요?" onkeydown="if(event.key==='Enter') addGoal()">
+                <button class="btn-action" onclick="addGoal()">추가</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">🔥 진행 중</div>
+            <ul id="active-goals" style="list-style:none;"></ul>
+        </div>
+        <div class="card" style="background:#f8fafc;">
+            <div class="card-title" style="color:var(--gray);">✅ 완료된 버킷</div>
+            <ul id="done-goals" style="list-style:none; opacity:0.6;"></ul>
         </div>
     </div>
 
     <div id="view-money" class="content">
         <div class="card">
-            <div class="card-title">💸 이번 달 지출 내역</div>
-            <div class="grid-2" style="margin-bottom:15px;">
-                <input type="text" id="pay-name" placeholder="항목 (예: 점심)">
-                <input type="number" id="pay-amount" placeholder="금액">
-            </div>
-            <button class="btn-main" onclick="addPay()">지출 기록하기</button>
+            <div class="card-title">💰 자산 현황</div>
+            <div style="font-size:28px; font-weight:800;">₩ 0</div>
+            <p style="color:var(--gray); font-size:12px; margin-top:5px;">이번 달 지출 내역이 없습니다.</p>
         </div>
     </div>
 
@@ -125,37 +152,107 @@
 <nav>
     <button class="nav-item active" onclick="showView('home', this)"><i>🏠</i>홈</button>
     <button class="nav-item" onclick="showView('stock', this)"><i>📈</i>주식</button>
-    <button class="nav-item" onclick="showView('car', this)"><i>🚗</i>자동차</button>
+    <button class="nav-item" onclick="showView('car', this)"><i>🚗</i>차량</button>
     <button class="nav-item" onclick="showView('goal', this)"><i>🎯</i>목표</button>
     <button class="nav-item" onclick="showView('money', this)"><i>💰</i>가계부</button>
 </nav>
 
 <script>
-    // 뷰 전환 로직
+    // --- 데이터 저장소 (임시) ---
+    let carData = [
+        { name: "엔진오일", cycle: 10000, lastKm: 50000, price: 85000 },
+        { name: "타이어", cycle: 40000, lastKm: 30000, price: 600000 },
+        { name: "미션오일", cycle: 80000, lastKm: 10000, price: 180000 }
+    ];
+
+    let goals = [
+        { id: 1, text: "자산 10억 달성하기", done: false },
+        { id: 2, text: "매일 아침 운동 30분", done: false },
+        { id: 3, text: "제주도 한 달 살기", done: true }
+    ];
+
+    // --- 뷰 전환 ---
     function showView(viewId, btn) {
-        document.querySelectorAll('.content').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
         btn.classList.add('active');
-        
-        // 헤더 타이틀 변경
-        const titles = { home: 'Hello, Boss', stock: 'Stock Center', car: 'Car Care', goal: 'My Goals', money: 'Money Manager' };
-        document.querySelector('header h1').innerText = titles[viewId];
+        document.getElementById('header-title').innerText = 
+            { home: 'Hello, Boss', stock: 'Investments', car: 'My Car', goal: 'Success Map', money: 'Finance' }[viewId];
     }
 
-    // 날짜 표시
-    const now = new Date();
-    document.getElementById('current-date').innerText = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일`;
+    // --- 자동차 로직 ---
+    function updateCarLogic() {
+        const currentKm = parseInt(document.getElementById('current-km').value) || 0;
+        const tbody = document.getElementById('car-body');
+        let dangerCount = 0;
+        tbody.innerHTML = '';
 
-    // 간단 기능 (상세 Firebase 연결은 코칭 후 진행)
-    function addGoal(val) {
-        if(!val) return;
-        const li = document.createElement('li');
-        li.style.cssText = "padding:10px 0; border-bottom:1px solid #f1f5f9;";
-        li.innerText = "✔️ " + val;
-        document.getElementById('goal-list').prepend(li);
+        carData.forEach(item => {
+            const remain = (item.lastKm + item.cycle) - currentKm;
+            let cls = 'status-ok'; let txt = '양호';
+            if(remain <= 0) { cls = 'status-danger'; txt = '교체필요'; dangerCount++; }
+            else if(remain <= 1000) { cls = 'status-warn'; txt = '주의'; }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${item.name}</b><br><span class="status-badge ${cls}">${txt}</span></td>
+                    <td style="text-align:center;"><b>${remain.toLocaleString()} km</b></td>
+                    <td style="text-align:right; font-size:12px; color:var(--gray);">${item.lastKm.toLocaleString()} km<br>₩${item.price.toLocaleString()}</td>
+                </tr>`;
+        });
+        document.getElementById('home-car-summary').innerHTML = dangerCount > 0 
+            ? `<span style="color:var(--danger)">⚠️ 점검 필요 항목 ${dangerCount}개</span>` 
+            : `<span style="color:var(--success)">✅ 모든 소모품 양호</span>`;
     }
+
+    // --- 목표 로직 ---
+    function addGoal() {
+        const input = document.getElementById('goal-input');
+        if(!input.value.trim()) return;
+        goals.push({ id: Date.now(), text: input.value, done: false });
+        input.value = '';
+        renderGoals();
+    }
+
+    function toggleGoal(id) {
+        goals = goals.map(g => g.id === id ? { ...g, done: !g.done } : g);
+        setTimeout(renderGoals, 250);
+    }
+
+    function deleteGoal(id) {
+        goals = goals.filter(g => g.id !== id);
+        renderGoals();
+    }
+
+    function renderGoals() {
+        const activeList = document.getElementById('active-goals');
+        const doneList = document.getElementById('done-goals');
+        activeList.innerHTML = ''; doneList.innerHTML = '';
+        let pending = 0;
+
+        goals.forEach(g => {
+            const html = `
+                <li class="goal-item">
+                    <div class="goal-content">
+                        <input type="checkbox" class="goal-cb" ${g.done?'checked':''} onclick="toggleGoal(${g.id})">
+                        <span class="${g.done?'completed-text':''}">${g.text}</span>
+                    </div>
+                    <button onclick="deleteGoal(${g.id})" style="border:none; background:none; color:#cbd5e1; cursor:pointer;">×</button>
+                </li>`;
+            if(g.done) doneList.innerHTML += html;
+            else { activeList.innerHTML += html; pending++; }
+        });
+        document.getElementById('home-goal-summary').innerText = `현재 ${pending}개의 목표가 진행 중입니다.`;
+    }
+
+    // --- 초기화 ---
+    window.onload = () => {
+        const now = new Date();
+        document.getElementById('current-date').innerText = now.toDateString();
+        updateCarLogic();
+        renderGoals();
+    };
 </script>
-
 </body>
 </html>
